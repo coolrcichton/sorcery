@@ -3,73 +3,96 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sorcery singles and playmats · trade binder and price list</title>
+<meta name="color-scheme" content="light dark">
+<title>Emily's Emporium · Sorcery singles and playmats</title>
 <link rel="icon" href="data:,">
-<meta name="description" content="Sorcery: Contested Realm singles and playmats. Price list with online prices alongside.">
+<meta name="description" content="Emily's Emporium: Sorcery: Contested Realm singles and playmats. Price list with online prices alongside.">
 <style>
+:root{
+  --paper:#f3ecd8;--ink:#1d1a14;--soft:#5a5240;--rule:#d6caa8;--slot:#e6dcc0;
+  --sign:#1f3a2e;--gilt:#e3c15a;--on-sign:#f3ecd8;--save:#1c5a38;--link:#234a8f;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#15130e;--ink:#efe6cf;--soft:#b9ad90;--rule:#3a3424;--slot:#262117;
+  --save:#86cda0;--link:#9dbcf5;
+}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;font:16px/1.25 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#111;background:#fff;padding-bottom:68px}
-header,main,footer{max-width:640px;margin:0 auto;padding:0 12px}
-h1{font-size:18px;line-height:1.2;margin:8px 0 2px}
-header p{margin:0 0 2px}
+body{margin:0;font:16px/1.25 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--paper);padding-bottom:68px}
+main,footer,.wrap{max-width:640px;margin:0 auto;padding:0 12px}
+
+/* The shop sign: the one loud thing on the page */
+header{background:var(--sign);color:var(--on-sign);border-bottom:3px double var(--gilt)}
+header .wrap{padding-top:8px;padding-bottom:8px}
+h1{font:700 28px/1.1 var(--serif);letter-spacing:.01em;color:var(--gilt);margin:0}
+header p{margin:2px 0 0}
+.tag{display:inline-block;padding:1px 8px;margin-right:6px;background:var(--gilt);color:#1d1a14;font-weight:700;border-radius:3px}
 #banner:empty,#where:empty{display:none}
-#where{font-weight:700}
-.small{color:#444}
-#filter{display:block;width:100%;height:44px;margin:6px 0;padding:0 12px;font:inherit;color:#111;background:#fff;border:2px solid #111;border-radius:8px}
+.hello{font:italic 16px/1.3 var(--serif);margin:8px 0 0}
+#where{font-weight:700;margin:6px 0 0}
+
+#filter{display:block;width:100%;height:44px;margin:8px 0 6px;padding:0 12px;font:inherit;color:var(--ink);background:transparent;border:2px solid var(--ink);border-radius:6px}
+#filter::placeholder{color:var(--soft);opacity:1}
 #chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
 #chips::-webkit-scrollbar{display:none}
-#chips button{flex:none;min-height:44px;padding:0 14px;font:inherit;color:#111;background:#fff;border:1px solid #767676;border-radius:22px}
-#chips button[aria-pressed=true]{background:#111;color:#fff;border-color:#111}
+#chips button{flex:none;min-height:44px;padding:0 14px;font:inherit;color:var(--ink);background:transparent;border:1px solid var(--soft);border-radius:22px}
+#chips button[aria-pressed=true]{background:var(--sign);color:var(--on-sign);border-color:var(--sign)}
+
 ul{list-style:none;margin:0;padding:0}
-.row{border-top:1px solid #ccc;scroll-margin:8px 0 72px}
+.row{border-top:1px solid var(--rule);scroll-margin:8px 0 72px}
 .main{display:flex;align-items:center;gap:10px;min-height:64px;padding:4px 0;cursor:pointer}
-.thumb{flex:none;border-radius:4px;object-fit:cover}
+.thumb{flex:none;width:52px;height:52px;border-radius:6px;object-fit:cover;object-position:50% 22%;background:var(--slot)}
 .info{flex:1;min-width:0}
-.name{font-size:18px;font-weight:600;overflow-wrap:anywhere}
-.meta{color:#444}
-.hold{display:inline-block;padding:0 6px;background:#111;color:#fff;border-radius:4px}
-.price{flex:none;text-align:right}
-.ref{color:#444}
+.name{font:700 18px/1.2 var(--serif);overflow-wrap:anywhere}
+.meta{color:var(--soft)}
+.foil{background:linear-gradient(100deg,#b23a7a,#b8860b 35%,#1f7a8c 65%,#5b3fa8);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700}
+.hold{display:inline-block;padding:0 6px;background:var(--ink);color:var(--paper);border-radius:4px}
+.price{flex:none;text-align:right;font-variant-numeric:tabular-nums}
+.ref{color:var(--soft)}
 .ev{font-size:20px;font-weight:700}
-.save{color:#0a6b2d;font-weight:600}
+.save{color:var(--save);font-weight:600}
 .more{padding:0 0 12px}
 .more p{margin:0 0 10px}
-.stage{height:300px;display:flex;align-items:center;justify-content:center;perspective:700px;margin:4px 0 12px}
-.card{position:relative;line-height:0;border-radius:12px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.3);animation:tilt 5s ease-in-out infinite}
+.stage{height:300px;display:flex;align-items:center;justify-content:center;perspective:700px;margin:4px 0 12px;animation:reveal .25s ease-out}
+.card{position:relative;line-height:0;border-radius:12px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.35);animation:tilt 5s ease-in-out infinite}
 .card img{display:block;max-height:300px;max-width:100%;width:auto;height:auto}
 .card::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.5) 50%,transparent 65%);background-size:300% 100%;animation:shine 5s ease-in-out infinite}
-.card.foil::after{background-image:linear-gradient(115deg,transparent 20%,rgba(255,80,160,.35) 36%,rgba(255,235,120,.4) 44%,rgba(255,255,255,.6) 50%,rgba(110,230,255,.4) 56%,rgba(150,110,255,.35) 64%,transparent 80%)}
+.card.shiny::after{background-image:linear-gradient(115deg,transparent 20%,rgba(255,80,160,.35) 36%,rgba(255,235,120,.4) 44%,rgba(255,255,255,.6) 50%,rgba(110,230,255,.4) 56%,rgba(150,110,255,.35) 64%,transparent 80%)}
+@keyframes reveal{from{opacity:0;transform:scale(.94)}}
 @keyframes tilt{0%,100%{transform:rotateY(-10deg) rotateX(3deg)}50%{transform:rotateY(10deg) rotateX(-3deg)}}
 @keyframes shine{0%,100%{background-position:100% 0}50%{background-position:0 0}}
-@media (prefers-reduced-motion:reduce){.card,.card::after{animation:none}.card::after{display:none}}
-.links a{display:inline-block;min-height:44px;line-height:44px;margin-right:18px;color:#0b4fb3}
-.btn{display:inline-block;min-height:48px;line-height:48px;padding:0 22px;margin-right:8px;background:#111;color:#fff;font-weight:700;text-decoration:none;border-radius:8px;text-align:center}
-.btn.alt{background:#0a6b2d}
+@media (prefers-reduced-motion:reduce){.stage,.card,.card::after{animation:none}.card::after{display:none}}
+.links a{display:inline-block;min-height:44px;line-height:44px;margin-right:18px;color:var(--link)}
+.btn{display:inline-block;min-height:48px;line-height:48px;padding:0 22px;margin-right:8px;background:var(--sign);color:var(--on-sign);font-weight:700;text-decoration:none;border-radius:6px;text-align:center;border:1px solid var(--gilt)}
+.btn.alt{background:#1c5a38}
 #empty{padding:12px 0}
 #empty p{margin:0 0 10px}
-#bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;padding:6px 12px calc(6px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #ccc}
+#bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;padding:6px 12px calc(6px + env(safe-area-inset-bottom));background:var(--paper);border-top:1px solid var(--rule)}
 #bar .btn{flex:1;margin:0;min-height:44px;line-height:44px}
-footer{padding-top:16px;padding-bottom:16px;border-top:1px solid #ccc;margin-top:8px}
+footer{padding-top:16px;padding-bottom:16px;border-top:1px solid var(--rule);margin-top:8px}
 footer p{margin:0 0 8px}
+.small{color:var(--soft)}
+a:focus-visible,button:focus-visible,.main:focus-visible,#filter:focus-visible{outline:3px solid var(--link);outline-offset:2px}
 </style>
 </head>
 <body>
-<header>
-<h1>Sorcery singles and playmats · trade binder and price list</h1>
-<p>Thanks for checking out our collection! Interested in anything? Let us know.</p>
-<p id="banner"></p>
-<p>About <span id="pct">10</span>% under TCGplayer market. No shipping, no waiting, in hand today.</p>
-<p id="where"></p>
-<p class="small">Online prices exclude shipping and sales tax.</p>
-</header>
+<header><div class="wrap">
+<h1>Emily's Emporium</h1>
+<p>Sorcery singles and playmats</p>
+<p><span class="tag">About <span id="pct">10</span>% under TCGplayer</span>In hand today, no shipping.</p>
+</div></header>
 <main>
+<p class="hello">Thanks for checking out our collection! Interested in anything? Let us know.</p>
+<p id="banner"></p>
+<p id="where"></p>
 <input id="filter" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Filter the list" placeholder="Filter the list">
 <div id="chips"></div>
 <ul id="list"></ul>
 <div id="empty" hidden></div>
 </main>
 <footer>
+<p>Online prices exclude shipping and sales tax.</p>
 <p id="pay"></p>
 <p>Buying 3 or more? Ask for a bundle price.</p>
 <p>Other TCGs available, ask.</p>
@@ -77,7 +100,7 @@ footer p{margin:0 0 8px}
 <p class="small">Not affiliated with Erik's Curiosa.</p>
 </footer>
 <nav id="bar"></nav>
-<script type="application/json" id="data">{"settings":{"location_now":"","banner":"","payment_methods":"Cash, Venmo, PayPal, Zelle","trades":"Y","discount":0.1,"sellers":[{"name":"Christian","sms":"+18022942383","whatsapp":"","discord":"coolrichton"},{"name":"Emily","sms":"+18022942383","whatsapp":"","discord":"coolrichton"}]},"items":[{"id":"A001","type":"Card","name":"Ring of Morrigan","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585400/sorcery-contested-realm-arthurian-legends-ring-of-morrigan","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":168.61,"src":"TCG","event":152,"saving":16},{"id":"A002","type":"Card","name":"Fields of Camlann","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585230/sorcery-contested-realm-arthurian-legends-fields-of-camlann","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":33.71,"src":"TCG","event":30,"saving":3},{"id":"A003","type":"Card","name":"The Green Knight","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585502/sorcery-contested-realm-arthurian-legends-the-green-knight","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":20.02,"src":"TCG","event":18,"saving":2},{"id":"A004","type":"Card","name":"Mesmerism","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585340/sorcery-contested-realm-arthurian-legends-mesmerism","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":20.1,"src":"TCG","event":18,"saving":2},{"id":"A005","type":"Card","name":"Tithe","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585518/sorcery-contested-realm-arthurian-legends-tithe","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":16.06,"src":"TCG","event":14,"saving":2},{"id":"A006","type":"Card","name":"Lady Iseult","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585311/sorcery-contested-realm-arthurian-legends-lady-iseult","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":14.53,"src":"TCG","event":13,"saving":1},{"id":"A007","type":"Card","name":"Tintagel","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585516/Sorcery%20Contested%20Realm-Arthurian%20Legends-Tintagel","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":23.57,"src":"TCG","event":21,"saving":2},{"id":"A008","type":"Card","name":"Four Waters of Paradise","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585245/sorcery-contested-realm-arthurian-legends-four-waters-of-paradise","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":19.17,"src":"TCG","event":17,"saving":2},{"id":"A009","type":"Card","name":"The Great Famine","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585500/Sorcery%20Contested%20Realm-Arthurian%20Legends-The%20Great%20Famine","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":19.26,"src":"TCG","event":17,"saving":2},{"id":"A010","type":"Card","name":"Mount Ussar Sanctuary","set":"Gothic","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667458/sorcery-contested-realm-gothic-mount-ussar-sanctuary","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":38.1,"src":"TCG","event":34,"saving":4},{"id":"A011","type":"Card","name":"Temple of Moloch","set":"Gothic","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667684/sorcery-contested-realm-gothic-temple-of-moloch","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":15.04,"src":"TCG","event":14,"saving":1},{"id":"A012","type":"Card","name":"Key to the City","set":"Gothic","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667372/sorcery-contested-realm-gothic-key-to-the-city","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":69.81,"src":"TCG","event":63,"saving":6},{"id":"A013","type":"Card","name":"The Rack","set":"Gothic","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667708/sorcery-contested-realm-gothic-the-rack","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":26.64,"src":"TCG","event":24,"saving":2},{"id":"A014","type":"Card","name":"City of Plenty","set":"Gothic","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667069/sorcery-contested-realm-gothic-city-of-plenty-foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":185.15,"src":"TCG","event":167,"saving":18},{"id":"A015","type":"Card","name":"Interrogator","set":"Gothic","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667359/Sorcery%20Contested%20Realm-Gothic-Interrogator%20Foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":78.92,"src":"TCG","event":71,"saving":7},{"id":"A016","type":"Card","name":"The Inquisition","set":"Gothic","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667701/sorcery-contested-realm-gothic-the-inquisition-foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":102.69,"src":"TCG","event":92,"saving":10},{"id":"A017","type":"Card","name":"De Vermis Mysteriis","set":"Gothic","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667139/sorcery-contested-realm-gothic-de-vermis-mysteriis-foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":48.34,"src":"TCG","event":44,"saving":4},{"id":"A018","type":"Card","name":"Red Rock of Ravannis","set":"Gothic","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667564/sorcery-contested-realm-gothic-red-rock-of-ravannis-foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":79.59,"src":"TCG","event":72,"saving":7},{"id":"A019","type":"Card","name":"Lifewish","set":"Gothic","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667399/Sorcery%20Contested%20Realm-Gothic-Lifewish%20Foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":111.02,"src":"TCG","event":100,"saving":11},{"id":"A020","type":"Card","name":"Tithe","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585519/sorcery-contested-realm-arthurian-legends-tithe-foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":49.87,"src":"TCG","event":45,"saving":4},{"id":"A021","type":"Card","name":"King Arthur","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585304/Sorcery%20Contested%20Realm-Arthurian%20Legends-King%20Arthur%20Foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":44.46,"src":"TCG","event":40,"saving":4},{"id":"A022","type":"Card","name":"The Round Table","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585509/sorcery-contested-realm-arthurian-legends-the-round-table-foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":25.34,"src":"TCG","event":23,"saving":2},{"id":"A023","type":"Card","name":"A Midsummer Night's Dream","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585130/sorcery-contested-realm-arthurian-legends-a-midsummer-nights-dream-foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":47.1,"src":"TCG","event":42,"saving":5},{"id":"A024","type":"Card","name":"Lady Iseult","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585312/sorcery-contested-realm-arthurian-legends-lady-iseult-foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":47.99,"src":"TCG","event":43,"saving":4},{"id":"A025","type":"Card","name":"Peasant Revolt","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585357/Sorcery%20Contested%20Realm-Arthurian%20Legends-Peasant%20Revolt%20Foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":51.59,"src":"TCG","event":46,"saving":5},{"id":"A026","type":"Card","name":"Boudicca","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585170/sorcery-contested-realm-arthurian-legends-boudicca-foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":110.35,"src":"TCG","event":99,"saving":11},{"id":"A027","type":"Card","name":"Boneyard","set":"Beta","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/522889/sorcery-contested-realm-beta-boneyard-foil","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":14.11,"src":"TCG","event":13,"saving":1},{"id":"A028","type":"Card","name":"Atlantean Fate","set":"Beta","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/523235/sorcery-contested-realm-beta-atlantean-fate","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":36.95,"src":"TCG","event":33,"saving":3},{"id":"A029","type":"Card","name":"Sorcerer","set":"Promo","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/607962/sorcery-contested-realm-arthurian-legends-promo-sorcerer-store-alternate-art-promo-foil","photo":"","notes":"Store Alternate Art Promo; Arthurian Legends Promo","seller":"","featured":false,"hold":false,"ref":129.77,"src":"TCG","event":117,"saving":12},{"id":"A030","type":"Card","name":"Mock Court","set":"Promo","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/708059/sorcery-contested-realm-dust-reward-promos-mock-court","photo":"","notes":"Dust Reward Promo","seller":"","featured":false,"hold":false,"ref":60.94,"src":"TCG","event":55,"saving":5},{"id":"A031","type":"Card","name":"Court of Equity","set":"Promo","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/708054/sorcery-contested-realm-dust-reward-promos-court-of-equity","photo":"","notes":"Dust Reward Promo","seller":"","featured":false,"hold":false,"ref":41.36,"src":"TCG","event":37,"saving":4},{"id":"A032","type":"Card","name":"Archangel Michael","set":"Gothic","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/666957/sorcery-contested-realm-gothic-archangel-michael","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":76.21,"src":"TCG","event":69,"saving":7},{"id":"A033","type":"Card","name":"Ruler of Thul","set":"Alpha","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/522301/sorcery-contested-realm-alpha-ruler-of-thul","photo":"","notes":"","seller":"","featured":false,"hold":false,"ref":238.4,"src":"TCG","event":215,"saving":23},{"id":"A034","type":"Card","name":"Amazon Warriors","set":"Beta","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/552235/sorcery-contested-realm-beta-amazon-warriors-alpha-investments-promo-foil","photo":"","notes":"Alpha Investments Promo","seller":"","featured":false,"hold":false,"ref":188.27,"src":"TCG","event":169,"saving":19},{"id":"A035","type":"Card","name":"King Arthur","set":"Promo","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/668754/sorcery-contested-realm-dust-reward-promos-king-arthur","photo":"","notes":"Dust Reward Promo","seller":"","featured":false,"hold":false,"ref":440.86,"src":"TCG","event":397,"saving":43},{"id":"A036","type":"Card","name":"The Colour Out of Space","set":"Promo","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/550753/sorcery-contested-realm-dust-reward-promos-the-colour-out-of-space","photo":"","notes":"Dust Reward Promo","seller":"","featured":false,"hold":false,"ref":186.16,"src":"TCG","event":168,"saving":18}],"live":{"items":"https://docs.google.com/spreadsheets/d/e/2PACX-1vTjTrkoDzN6rdYyS7gDJy51Sj-Zgje6PS-4e9wu5MgMaTDIjAZNI_MYs5bTXr99AW3zQcMlOrXNRwKk/pub?single=true&output=csv&gid=2131651168","settings":"https://docs.google.com/spreadsheets/d/e/2PACX-1vTjTrkoDzN6rdYyS7gDJy51Sj-Zgje6PS-4e9wu5MgMaTDIjAZNI_MYs5bTXr99AW3zQcMlOrXNRwKk/pub?single=true&output=csv&gid=1572978540"}}</script>
+<script type="application/json" id="data">{"settings":{"location_now":"","banner":"","payment_methods":"Cash, Venmo, PayPal, Zelle","trades":"Y","discount":0.1,"sellers":[{"name":"Christian","sms":"+18022942383","whatsapp":"","discord":"coolrichton"},{"name":"Emily","sms":"+18022942383","whatsapp":"","discord":"coolrichton"}]},"items":[{"id":"A001","type":"Card","name":"Ring of Morrigan","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585400/sorcery-contested-realm-arthurian-legends-ring-of-morrigan","photo":"","notes":"","featured":false,"hold":false,"ref":168.61,"src":"TCG","event":152,"saving":16},{"id":"A002","type":"Card","name":"Fields of Camlann","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585230/sorcery-contested-realm-arthurian-legends-fields-of-camlann","photo":"","notes":"","featured":false,"hold":false,"ref":33.71,"src":"TCG","event":30,"saving":3},{"id":"A003","type":"Card","name":"The Green Knight","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585502/sorcery-contested-realm-arthurian-legends-the-green-knight","photo":"","notes":"","featured":false,"hold":false,"ref":20.02,"src":"TCG","event":18,"saving":2},{"id":"A004","type":"Card","name":"Mesmerism","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585340/sorcery-contested-realm-arthurian-legends-mesmerism","photo":"","notes":"","featured":false,"hold":false,"ref":20.1,"src":"TCG","event":18,"saving":2},{"id":"A005","type":"Card","name":"Tithe","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585518/sorcery-contested-realm-arthurian-legends-tithe","photo":"","notes":"","featured":false,"hold":false,"ref":16.06,"src":"TCG","event":14,"saving":2},{"id":"A006","type":"Card","name":"Lady Iseult","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585311/sorcery-contested-realm-arthurian-legends-lady-iseult","photo":"","notes":"","featured":false,"hold":false,"ref":14.53,"src":"TCG","event":13,"saving":1},{"id":"A007","type":"Card","name":"Tintagel","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585516/Sorcery%20Contested%20Realm-Arthurian%20Legends-Tintagel","photo":"","notes":"","featured":false,"hold":false,"ref":23.57,"src":"TCG","event":21,"saving":2},{"id":"A008","type":"Card","name":"Four Waters of Paradise","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585245/sorcery-contested-realm-arthurian-legends-four-waters-of-paradise","photo":"","notes":"","featured":false,"hold":false,"ref":19.17,"src":"TCG","event":17,"saving":2},{"id":"A009","type":"Card","name":"The Great Famine","set":"Arthurian Legends","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585500/Sorcery%20Contested%20Realm-Arthurian%20Legends-The%20Great%20Famine","photo":"","notes":"","featured":false,"hold":false,"ref":19.26,"src":"TCG","event":17,"saving":2},{"id":"A010","type":"Card","name":"Mount Ussar Sanctuary","set":"Gothic","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667458/sorcery-contested-realm-gothic-mount-ussar-sanctuary","photo":"","notes":"","featured":false,"hold":false,"ref":38.1,"src":"TCG","event":34,"saving":4},{"id":"A011","type":"Card","name":"Temple of Moloch","set":"Gothic","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667684/sorcery-contested-realm-gothic-temple-of-moloch","photo":"","notes":"","featured":false,"hold":false,"ref":15.04,"src":"TCG","event":14,"saving":1},{"id":"A012","type":"Card","name":"Key to the City","set":"Gothic","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667372/sorcery-contested-realm-gothic-key-to-the-city","photo":"","notes":"","featured":false,"hold":false,"ref":69.81,"src":"TCG","event":63,"saving":6},{"id":"A013","type":"Card","name":"The Rack","set":"Gothic","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667708/sorcery-contested-realm-gothic-the-rack","photo":"","notes":"","featured":false,"hold":false,"ref":26.64,"src":"TCG","event":24,"saving":2},{"id":"A014","type":"Card","name":"City of Plenty","set":"Gothic","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667069/sorcery-contested-realm-gothic-city-of-plenty-foil","photo":"","notes":"","featured":false,"hold":false,"ref":185.15,"src":"TCG","event":167,"saving":18},{"id":"A015","type":"Card","name":"Interrogator","set":"Gothic","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667359/Sorcery%20Contested%20Realm-Gothic-Interrogator%20Foil","photo":"","notes":"","featured":false,"hold":false,"ref":78.92,"src":"TCG","event":71,"saving":7},{"id":"A016","type":"Card","name":"The Inquisition","set":"Gothic","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667701/sorcery-contested-realm-gothic-the-inquisition-foil","photo":"","notes":"","featured":false,"hold":false,"ref":102.69,"src":"TCG","event":92,"saving":10},{"id":"A017","type":"Card","name":"De Vermis Mysteriis","set":"Gothic","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667139/sorcery-contested-realm-gothic-de-vermis-mysteriis-foil","photo":"","notes":"","featured":false,"hold":false,"ref":48.34,"src":"TCG","event":44,"saving":4},{"id":"A018","type":"Card","name":"Red Rock of Ravannis","set":"Gothic","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667564/sorcery-contested-realm-gothic-red-rock-of-ravannis-foil","photo":"","notes":"","featured":false,"hold":false,"ref":79.59,"src":"TCG","event":72,"saving":7},{"id":"A019","type":"Card","name":"Lifewish","set":"Gothic","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/667399/Sorcery%20Contested%20Realm-Gothic-Lifewish%20Foil","photo":"","notes":"","featured":false,"hold":false,"ref":111.02,"src":"TCG","event":100,"saving":11},{"id":"A020","type":"Card","name":"Tithe","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585519/sorcery-contested-realm-arthurian-legends-tithe-foil","photo":"","notes":"","featured":false,"hold":false,"ref":49.87,"src":"TCG","event":45,"saving":4},{"id":"A021","type":"Card","name":"King Arthur","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585304/Sorcery%20Contested%20Realm-Arthurian%20Legends-King%20Arthur%20Foil","photo":"","notes":"","featured":false,"hold":false,"ref":44.46,"src":"TCG","event":40,"saving":4},{"id":"A022","type":"Card","name":"The Round Table","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585509/sorcery-contested-realm-arthurian-legends-the-round-table-foil","photo":"","notes":"","featured":false,"hold":false,"ref":25.34,"src":"TCG","event":23,"saving":2},{"id":"A023","type":"Card","name":"A Midsummer Night's Dream","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585130/sorcery-contested-realm-arthurian-legends-a-midsummer-nights-dream-foil","photo":"","notes":"","featured":false,"hold":false,"ref":47.1,"src":"TCG","event":42,"saving":5},{"id":"A024","type":"Card","name":"Lady Iseult","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585312/sorcery-contested-realm-arthurian-legends-lady-iseult-foil","photo":"","notes":"","featured":false,"hold":false,"ref":47.99,"src":"TCG","event":43,"saving":4},{"id":"A025","type":"Card","name":"Peasant Revolt","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585357/Sorcery%20Contested%20Realm-Arthurian%20Legends-Peasant%20Revolt%20Foil","photo":"","notes":"","featured":false,"hold":false,"ref":51.59,"src":"TCG","event":46,"saving":5},{"id":"A026","type":"Card","name":"Boudicca","set":"Arthurian Legends","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/585170/sorcery-contested-realm-arthurian-legends-boudicca-foil","photo":"","notes":"","featured":false,"hold":false,"ref":110.35,"src":"TCG","event":99,"saving":11},{"id":"A027","type":"Card","name":"Boneyard","set":"Beta","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/522889/sorcery-contested-realm-beta-boneyard-foil","photo":"","notes":"","featured":false,"hold":false,"ref":14.11,"src":"TCG","event":13,"saving":1},{"id":"A028","type":"Card","name":"Atlantean Fate","set":"Beta","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/523235/sorcery-contested-realm-beta-atlantean-fate","photo":"","notes":"","featured":false,"hold":false,"ref":36.95,"src":"TCG","event":33,"saving":3},{"id":"A029","type":"Card","name":"Sorcerer","set":"Promo","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/607962/sorcery-contested-realm-arthurian-legends-promo-sorcerer-store-alternate-art-promo-foil","photo":"","notes":"Store Alternate Art Promo; Arthurian Legends Promo","featured":false,"hold":false,"ref":129.77,"src":"TCG","event":117,"saving":12},{"id":"A030","type":"Card","name":"Mock Court","set":"Promo","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/708059/sorcery-contested-realm-dust-reward-promos-mock-court","photo":"","notes":"Dust Reward Promo","featured":false,"hold":false,"ref":60.94,"src":"TCG","event":55,"saving":5},{"id":"A031","type":"Card","name":"Court of Equity","set":"Promo","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/708054/sorcery-contested-realm-dust-reward-promos-court-of-equity","photo":"","notes":"Dust Reward Promo","featured":false,"hold":false,"ref":41.36,"src":"TCG","event":37,"saving":4},{"id":"A032","type":"Card","name":"Archangel Michael","set":"Gothic","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/666957/sorcery-contested-realm-gothic-archangel-michael","photo":"","notes":"","featured":false,"hold":false,"ref":76.21,"src":"TCG","event":69,"saving":7},{"id":"A033","type":"Card","name":"Ruler of Thul","set":"Alpha","finish":"Standard","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/522301/sorcery-contested-realm-alpha-ruler-of-thul","photo":"","notes":"","featured":false,"hold":false,"ref":238.4,"src":"TCG","event":215,"saving":23},{"id":"A034","type":"Card","name":"Amazon Warriors","set":"Beta","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/552235/sorcery-contested-realm-beta-amazon-warriors-alpha-investments-promo-foil","photo":"","notes":"Alpha Investments Promo","featured":false,"hold":false,"ref":188.27,"src":"TCG","event":169,"saving":19},{"id":"A035","type":"Card","name":"King Arthur","set":"Promo","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/668754/sorcery-contested-realm-dust-reward-promos-king-arthur","photo":"","notes":"Dust Reward Promo","featured":false,"hold":false,"ref":440.86,"src":"TCG","event":397,"saving":43},{"id":"A036","type":"Card","name":"The Colour Out of Space","set":"Promo","finish":"Foil","cond":"NM","qty":1,"link":"https://www.tcgplayer.com/product/550753/sorcery-contested-realm-dust-reward-promos-the-colour-out-of-space","photo":"","notes":"Dust Reward Promo","featured":false,"hold":false,"ref":186.16,"src":"TCG","event":168,"saving":18}],"live":{"items":"https://docs.google.com/spreadsheets/d/e/2PACX-1vTjTrkoDzN6rdYyS7gDJy51Sj-Zgje6PS-4e9wu5MgMaTDIjAZNI_MYs5bTXr99AW3zQcMlOrXNRwKk/pub?single=true&output=csv&gid=2131651168","settings":"https://docs.google.com/spreadsheets/d/e/2PACX-1vTjTrkoDzN6rdYyS7gDJy51Sj-Zgje6PS-4e9wu5MgMaTDIjAZNI_MYs5bTXr99AW3zQcMlOrXNRwKk/pub?single=true&output=csv&gid=1572978540"}}</script>
 <script>"use strict";
 
 // ---- Pricing: port of pricing.py, keep the two in step. Both run tests/pricing_cases.json. ----
@@ -122,7 +145,7 @@ function toItem(row, discount) {
     cond: g("Condition") || "NM", // owner's call: blank means Near Mint
     qty: g("Qty") ? Math.trunc(Number(g("Qty"))) : 1,
     link: g("TCGplayer Link").split("?")[0],
-    photo: g("Photo URL"), notes: g("Notes"), seller: g("Seller"),
+    photo: g("Photo URL"), notes: g("Notes"),
     featured: g("Featured").toUpperCase() === "Y", hold: p.hold,
     ref: p.reference, src: p.source, event: p.event, saving: p.saving
   };
@@ -234,10 +257,7 @@ function chipDefs(items) {
 }
 
 // ---- Contact ----
-function sellerFor(settings, name) {
-  const all = settings.sellers || [];
-  return all.filter(function (s) { return s.name === name; })[0] || all[0] || {};
-}
+function contact(settings) { return (settings.sellers || [])[0] || {}; }
 
 function describe(it) {
   const bits = [it.set, it.finish && it.finish !== "Standard" ? it.finish : "", it.cond].filter(Boolean).join(", ");
@@ -259,10 +279,10 @@ function ebayHref(it) {
 }
 
 // Card art: the seller's own photo if there is one, else TCGplayer's product image for that exact printing.
-function artUrl(it) {
+function artUrl(it, size) {
   if (it.photo) return it.photo;
   const m = /\/product\/(\d+)/.exec(it.link || "");
-  return m ? "https://tcgplayer-cdn.tcgplayer.com/product/" + m[1] + "_400w.jpg" : "";
+  return m ? "https://tcgplayer-cdn.tcgplayer.com/product/" + m[1] + "_" + size + "w.jpg" : "";
 }
 
 // ---- Page ----
@@ -277,17 +297,20 @@ function prettyPhone(n) {
   return d.length === 10 ? d.slice(0, 3) + "-" + d.slice(3, 6) + "-" + d.slice(6) : n;
 }
 
-function contactButtons(settings, sellerName, text, label) {
-  const s = sellerFor(settings, sellerName);
+function contactButtons(settings, text, label) {
+  const s = contact(settings);
   let h = "";
   if (s.sms) h += '<a class="btn" href="' + esc(smsHref(s.sms, text)) + '">' + esc(label) + "</a>";
   if (s.whatsapp) h += '<a class="btn alt" href="' + esc(waHref(s.whatsapp, text)) + '">WhatsApp</a>';
   return h;
 }
 
-function rowHtml(it, settings, open) {
-  const meta = [it.set, it.finish && it.finish !== "Standard" ? it.finish : "", it.cond, it.qty > 1 ? "×" + it.qty : ""]
-    .filter(Boolean).map(esc).join(" · ");
+// thumb: load a small art thumbnail for this row (only the priciest rows, to go easy on hall Wi-Fi).
+function rowHtml(it, settings, open, thumb) {
+  const shiny = /foil/i.test(it.finish);
+  const meta = [esc(it.set), shiny ? '<span class="foil">' + esc(it.finish) + "</span>" : "", esc(it.cond), it.qty > 1 ? "×" + it.qty : ""]
+    .filter(Boolean).join(" · ");
+  const small = thumb || it.photo ? artUrl(it, 200) : "";
   let price = "";
   if (it.ref != null) price += '<div class="ref">' + esc(it.src) + " $" + it.ref.toFixed(2) + "</div>";
   price += '<div class="ev">' + (it.event != null ? "$" + it.event : "Ask") + "</div>";
@@ -296,18 +319,18 @@ function rowHtml(it, settings, open) {
   let more = "";
   if (open) {
     more = '<div class="more">';
-    const art = artUrl(it);
-    if (art) more += '<div class="stage"><div class="card' + (/foil/i.test(it.finish) ? " foil" : "") + '"><img src="' + esc(art) +
+    const art = artUrl(it, 400);
+    if (art) more += '<div class="stage"><div class="card' + (shiny ? " shiny" : "") + '"><img src="' + esc(art) +
       '" alt="' + esc(it.name) + '" onerror="this.closest(\'.stage\').remove()"></div></div>';
     if (it.notes) more += "<p>" + esc(it.notes) + "</p>";
-    more += '<p class="acts">' + contactButtons(settings, it.seller, wantText(it), "I want this") + "</p>";
+    more += '<p class="acts">' + contactButtons(settings, wantText(it), "I want this") + "</p>";
     more += '<p class="links">';
     if (it.link) more += '<a href="' + esc(it.link) + '" target="_blank" rel="noopener">Check on TCGplayer</a>';
     more += '<a href="' + esc(ebayHref(it)) + '" target="_blank" rel="noopener">See eBay sold</a></p></div>';
   }
   return '<li class="row' + (open ? " open" : "") + '">' +
     '<div class="main" role="button" tabindex="0" aria-expanded="' + (open ? "true" : "false") + '" data-id="' + esc(it.id) + '">' +
-    (it.photo ? '<img class="thumb" src="' + esc(it.photo) + '" alt="" width="48" height="48" loading="lazy">' : "") +
+    (small ? '<img class="thumb" src="' + esc(small) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="thumb"></span>') +
     '<div class="info"><div class="name">' + esc(it.name) + '</div><div class="meta">' + meta +
     (it.hold ? ' <span class="hold">On hold</span>' : "") + "</div></div>" +
     '<div class="price">' + price + "</div></div>" + more + "</li>";
@@ -334,16 +357,18 @@ function init() {
     const def = chipDefs(items).filter(function (d) { return d.key === chip; })[0];
     const pool = def ? items.filter(def.test) : items;
     const res = search(pool, query);
-    list.innerHTML = res.hits.map(function (it) { return rowHtml(it, settings, it.id === openId); }).join("");
+    const top = {};
+    items.slice(0, 10).forEach(function (it) { top[it.id] = 1; });
+    list.innerHTML = res.hits.map(function (it) { return rowHtml(it, settings, it.id === openId, top[it.id]); }).join("");
     if (res.hits.length) {
       empty.hidden = true;
     } else {
       const closest = query ? search(items, query).closest : [];
       empty.hidden = false;
       empty.innerHTML = "<p>Not on the list. We have more in the binder, text us what you need.</p>" +
-        '<p class="acts">' + contactButtons(settings, "", GENERIC_TEXT + query, "Text us") + "</p>" +
+        '<p class="acts">' + contactButtons(settings, GENERIC_TEXT + query, "Text us") + "</p>" +
         (closest.length ? "<p>Closest matches:</p><ul>" +
-          closest.map(function (it) { return rowHtml(it, settings, false); }).join("") + "</ul>" : "");
+          closest.map(function (it) { return rowHtml(it, settings, false, false); }).join("") + "</ul>" : "");
     }
     filter.placeholder = "Filter " + items.length + " items" + (items[0] ? ", e.g. " + items[0].name : "");
   }
@@ -373,11 +398,11 @@ function init() {
 
   // Header details from settings
   function applySettings() {
-    const s1 = sellerFor(settings, "");
+    const s1 = contact(settings);
     $("pct").textContent = Math.round(settings.discount * 100);
     $("where").textContent = settings.location_now ? "Find us: " + settings.location_now : "";
     $("banner").textContent = settings.banner || "";
-    $("bar").innerHTML = contactButtons(settings, "", GENERIC_TEXT, "Text us");
+    $("bar").innerHTML = contactButtons(settings, GENERIC_TEXT, "Text us");
     $("pay").textContent = (settings.payment_methods ? "We take " + settings.payment_methods + ". " : "") +
       (settings.trades === "Y" ? "Trades welcome." : "");
     $("plain").textContent = [s1.sms ? "Text " + prettyPhone(s1.sms) : "", s1.discord ? "Discord: " + s1.discord : ""].filter(Boolean).join(" · ");

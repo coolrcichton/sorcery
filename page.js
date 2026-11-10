@@ -42,7 +42,7 @@ function toItem(row, discount) {
     cond: g("Condition") || "NM", // owner's call: blank means Near Mint
     qty: g("Qty") ? Math.trunc(Number(g("Qty"))) : 1,
     link: g("TCGplayer Link").split("?")[0],
-    photo: g("Photo URL"), notes: g("Notes"), seller: g("Seller"),
+    photo: g("Photo URL"), notes: g("Notes"),
     featured: g("Featured").toUpperCase() === "Y", hold: p.hold,
     ref: p.reference, src: p.source, event: p.event, saving: p.saving
   };
@@ -154,10 +154,7 @@ function chipDefs(items) {
 }
 
 // ---- Contact ----
-function sellerFor(settings, name) {
-  const all = settings.sellers || [];
-  return all.filter(function (s) { return s.name === name; })[0] || all[0] || {};
-}
+function contact(settings) { return (settings.sellers || [])[0] || {}; }
 
 function describe(it) {
   const bits = [it.set, it.finish && it.finish !== "Standard" ? it.finish : "", it.cond].filter(Boolean).join(", ");
@@ -179,10 +176,10 @@ function ebayHref(it) {
 }
 
 // Card art: the seller's own photo if there is one, else TCGplayer's product image for that exact printing.
-function artUrl(it) {
+function artUrl(it, size) {
   if (it.photo) return it.photo;
   const m = /\/product\/(\d+)/.exec(it.link || "");
-  return m ? "https://tcgplayer-cdn.tcgplayer.com/product/" + m[1] + "_400w.jpg" : "";
+  return m ? "https://tcgplayer-cdn.tcgplayer.com/product/" + m[1] + "_" + size + "w.jpg" : "";
 }
 
 // ---- Page ----
@@ -197,17 +194,20 @@ function prettyPhone(n) {
   return d.length === 10 ? d.slice(0, 3) + "-" + d.slice(3, 6) + "-" + d.slice(6) : n;
 }
 
-function contactButtons(settings, sellerName, text, label) {
-  const s = sellerFor(settings, sellerName);
+function contactButtons(settings, text, label) {
+  const s = contact(settings);
   let h = "";
   if (s.sms) h += '<a class="btn" href="' + esc(smsHref(s.sms, text)) + '">' + esc(label) + "</a>";
   if (s.whatsapp) h += '<a class="btn alt" href="' + esc(waHref(s.whatsapp, text)) + '">WhatsApp</a>';
   return h;
 }
 
-function rowHtml(it, settings, open) {
-  const meta = [it.set, it.finish && it.finish !== "Standard" ? it.finish : "", it.cond, it.qty > 1 ? "×" + it.qty : ""]
-    .filter(Boolean).map(esc).join(" · ");
+// thumb: load a small art thumbnail for this row (only the priciest rows, to go easy on hall Wi-Fi).
+function rowHtml(it, settings, open, thumb) {
+  const shiny = /foil/i.test(it.finish);
+  const meta = [esc(it.set), shiny ? '<span class="foil">' + esc(it.finish) + "</span>" : "", esc(it.cond), it.qty > 1 ? "×" + it.qty : ""]
+    .filter(Boolean).join(" · ");
+  const small = thumb || it.photo ? artUrl(it, 200) : "";
   let price = "";
   if (it.ref != null) price += '<div class="ref">' + esc(it.src) + " $" + it.ref.toFixed(2) + "</div>";
   price += '<div class="ev">' + (it.event != null ? "$" + it.event : "Ask") + "</div>";
@@ -216,18 +216,18 @@ function rowHtml(it, settings, open) {
   let more = "";
   if (open) {
     more = '<div class="more">';
-    const art = artUrl(it);
-    if (art) more += '<div class="stage"><div class="card' + (/foil/i.test(it.finish) ? " foil" : "") + '"><img src="' + esc(art) +
+    const art = artUrl(it, 400);
+    if (art) more += '<div class="stage"><div class="card' + (shiny ? " shiny" : "") + '"><img src="' + esc(art) +
       '" alt="' + esc(it.name) + '" onerror="this.closest(\'.stage\').remove()"></div></div>';
     if (it.notes) more += "<p>" + esc(it.notes) + "</p>";
-    more += '<p class="acts">' + contactButtons(settings, it.seller, wantText(it), "I want this") + "</p>";
+    more += '<p class="acts">' + contactButtons(settings, wantText(it), "I want this") + "</p>";
     more += '<p class="links">';
     if (it.link) more += '<a href="' + esc(it.link) + '" target="_blank" rel="noopener">Check on TCGplayer</a>';
     more += '<a href="' + esc(ebayHref(it)) + '" target="_blank" rel="noopener">See eBay sold</a></p></div>';
   }
   return '<li class="row' + (open ? " open" : "") + '">' +
     '<div class="main" role="button" tabindex="0" aria-expanded="' + (open ? "true" : "false") + '" data-id="' + esc(it.id) + '">' +
-    (it.photo ? '<img class="thumb" src="' + esc(it.photo) + '" alt="" width="48" height="48" loading="lazy">' : "") +
+    (small ? '<img class="thumb" src="' + esc(small) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="thumb"></span>') +
     '<div class="info"><div class="name">' + esc(it.name) + '</div><div class="meta">' + meta +
     (it.hold ? ' <span class="hold">On hold</span>' : "") + "</div></div>" +
     '<div class="price">' + price + "</div></div>" + more + "</li>";
@@ -254,16 +254,18 @@ function init() {
     const def = chipDefs(items).filter(function (d) { return d.key === chip; })[0];
     const pool = def ? items.filter(def.test) : items;
     const res = search(pool, query);
-    list.innerHTML = res.hits.map(function (it) { return rowHtml(it, settings, it.id === openId); }).join("");
+    const top = {};
+    items.slice(0, 10).forEach(function (it) { top[it.id] = 1; });
+    list.innerHTML = res.hits.map(function (it) { return rowHtml(it, settings, it.id === openId, top[it.id]); }).join("");
     if (res.hits.length) {
       empty.hidden = true;
     } else {
       const closest = query ? search(items, query).closest : [];
       empty.hidden = false;
       empty.innerHTML = "<p>Not on the list. We have more in the binder, text us what you need.</p>" +
-        '<p class="acts">' + contactButtons(settings, "", GENERIC_TEXT + query, "Text us") + "</p>" +
+        '<p class="acts">' + contactButtons(settings, GENERIC_TEXT + query, "Text us") + "</p>" +
         (closest.length ? "<p>Closest matches:</p><ul>" +
-          closest.map(function (it) { return rowHtml(it, settings, false); }).join("") + "</ul>" : "");
+          closest.map(function (it) { return rowHtml(it, settings, false, false); }).join("") + "</ul>" : "");
     }
     filter.placeholder = "Filter " + items.length + " items" + (items[0] ? ", e.g. " + items[0].name : "");
   }
@@ -293,11 +295,11 @@ function init() {
 
   // Header details from settings
   function applySettings() {
-    const s1 = sellerFor(settings, "");
+    const s1 = contact(settings);
     $("pct").textContent = Math.round(settings.discount * 100);
     $("where").textContent = settings.location_now ? "Find us: " + settings.location_now : "";
     $("banner").textContent = settings.banner || "";
-    $("bar").innerHTML = contactButtons(settings, "", GENERIC_TEXT, "Text us");
+    $("bar").innerHTML = contactButtons(settings, GENERIC_TEXT, "Text us");
     $("pay").textContent = (settings.payment_methods ? "We take " + settings.payment_methods + ". " : "") +
       (settings.trades === "Y" ? "Trades welcome." : "");
     $("plain").textContent = [s1.sms ? "Text " + prettyPhone(s1.sms) : "", s1.discord ? "Discord: " + s1.discord : ""].filter(Boolean).join(" · ");

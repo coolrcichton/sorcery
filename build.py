@@ -31,7 +31,7 @@ def to_item(row, discount):
         "cond": g("Condition") or "NM",  # owner's call: blank means Near Mint
         "qty": int(float(g("Qty"))) if g("Qty") else 1,
         "link": g("TCGplayer Link").split("?")[0],
-        "photo": g("Photo URL"), "notes": g("Notes"), "seller": g("Seller"),
+        "photo": g("Photo URL"), "notes": g("Notes"),
         "featured": g("Featured").upper() == "Y", "hold": p["hold"],
         "ref": p["reference"], "src": p["source"], "event": p["event"], "saving": p["saving"],
     }
