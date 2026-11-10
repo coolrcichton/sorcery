@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-0U3CCvCJnuuiJx8uPyEILhzqBEsGoUzQUW3gwzExwoQ='; style-src 'unsafe-inline'; img-src https: data:; connect-src https://docs.google.com https://*.googleusercontent.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-j9OL3JvOq2hsZ4sxVEXry+fAoYRtuSMyv5YSDvJh2eA='; style-src 'unsafe-inline'; img-src https: data:; connect-src https://docs.google.com https://*.googleusercontent.com; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -372,9 +372,10 @@ function rowHtml(it, settings, open, thumb) {
     '<div class="price">' + price + "</div></div>" + more + "</li>";
 }
 
-function featuredHtml(picks) {
+// clone: a second copy of the strip that makes the loop seamless; hidden from screen readers and the tab key.
+function featuredHtml(picks, clone) {
   return picks.map(function (it) {
-    return '<li><button type="button" class="fcard" data-id="' + esc(it.id) + '">' +
+    return "<li" + (clone ? ' aria-hidden="true"' : "") + '><button type="button" class="fcard" data-id="' + esc(it.id) + '"' + (clone ? ' tabindex="-1"' : "") + ">" +
       '<img src="' + esc(artUrl(it, 200)) + '" alt="" width="100" height="140" loading="lazy">' +
       '<span class="fname">' + esc(it.name) + '</span><span class="fprice">$' + it.event + "</span></button></li>";
   }).join("");
@@ -425,10 +426,37 @@ function init() {
     filter.placeholder = "Filter " + items.length + " items" + (items[0] ? ", e.g. " + items[0].name : "");
   }
 
+  // The featured strip drifts sideways and loops forever. Touching it pauses the drift for a few seconds.
+  const feat = $("feat");
+  const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let loopW = 0, pos = 0, pausedUntil = 0, featSeen = true, lastTick = 0;
+
   function renderFeatured() {
     const picks = pickFeatured(items);
     $("featwrap").hidden = picks.length < 3;
-    $("feat").innerHTML = featuredHtml(picks);
+    feat.innerHTML = featuredHtml(picks, false) + featuredHtml(picks, true);
+    loopW = picks.length < 3 ? 0 : feat.children[picks.length].offsetLeft - feat.children[0].offsetLeft;
+    pos = feat.scrollLeft = 0;
+  }
+
+  function drift(now) {
+    const dt = Math.min(now - lastTick, 100);
+    lastTick = now;
+    if (loopW && featSeen) {
+      const held = now < pausedUntil;
+      if (held) pos = feat.scrollLeft;      // follow the finger
+      else if (!still) pos += dt * 0.03;    // about 30 px a second
+      if (pos >= loopW) pos -= loopW;       // wrap forwards
+      else if (held && pos <= 0) pos += loopW; // wrap backwards when swiped past the start
+      if (Math.abs(feat.scrollLeft - pos) >= 0.5) feat.scrollLeft = pos;
+    }
+    requestAnimationFrame(drift);
+  }
+  ["pointerdown", "touchstart", "touchmove", "touchend", "wheel"].forEach(function (ev) {
+    feat.addEventListener(ev, function () { pausedUntil = performance.now() + 3000; }, { passive: true });
+  });
+  if (window.IntersectionObserver) {
+    new IntersectionObserver(function (en) { featSeen = en[0].isIntersecting; }).observe(feat);
   }
 
   // Tapping a featured card opens that card in the list below.
@@ -527,6 +555,7 @@ function init() {
   renderChips();
   render();
   refresh();
+  requestAnimationFrame(drift);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
 }
 
