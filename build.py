@@ -1,12 +1,15 @@
 """Build index.html from the two published CSVs.
 
-Usage: python3 build.py PUBLIC_CSV SETTINGS_CSV      (each a URL or a local file path)
+Usage: python3 build.py                              (reads the live published sheet)
+       python3 build.py PUBLIC_CSV SETTINGS_CSV      (local CSV files instead)
 """
 import csv, io, json, os, sys, urllib.request
 
 from pricing import price_row
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+PUB = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjTrkoDzN6rdYyS7gDJy51Sj-Zgje6PS-4e9wu5MgMaTDIjAZNI_MYs5bTXr99AW3zQcMlOrXNRwKk/pub?single=true&output=csv&gid="
+LIVE = {"items": PUB + "2131651168", "settings": PUB + "1572978540"}
 
 
 def read_csv(src):
@@ -50,7 +53,7 @@ def main(public_src, settings_src):
     settings = to_settings(read_csv(settings_src))
     rows = read_csv(public_src)
     items = [to_item(dict(zip(rows[0], r)), settings["discount"]) for r in rows[1:]]
-    data = {"settings": settings, "items": [i for i in items if i]}
+    data = {"settings": settings, "items": [i for i in items if i], "live": LIVE}
 
     read = lambda name: open(os.path.join(HERE, name), encoding="utf-8").read()
     html = (read("template.html")
@@ -63,4 +66,4 @@ def main(public_src, settings_src):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(*(sys.argv[1:3] if len(sys.argv) > 2 else (LIVE["items"], LIVE["settings"])))

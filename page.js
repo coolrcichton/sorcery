@@ -32,6 +32,54 @@ function priceRow(row, discount) {
   return { visible: visible, hold: status === "Hold", reference: reference, source: source, event: event, saving: saving };
 }
 
+// ---- Sheet rows to page data: ports of to_item and to_settings in build.py ----
+function toItem(row, discount) {
+  const g = function (k) { return String(row[k] == null ? "" : row[k]).trim(); };
+  const p = priceRow(row, discount);
+  if (!p.visible || !g("Name")) return null;
+  return {
+    id: g("ID"), type: g("Type"), name: g("Name"), set: g("Set"), finish: g("Finish"),
+    cond: g("Condition") || "NM", // owner's call: blank means Near Mint
+    qty: g("Qty") ? Math.trunc(Number(g("Qty"))) : 1,
+    link: g("TCGplayer Link").split("?")[0],
+    photo: g("Photo URL"), notes: g("Notes"), seller: g("Seller"),
+    featured: g("Featured").toUpperCase() === "Y", hold: p.hold,
+    ref: p.reference, src: p.source, event: p.event, saving: p.saving
+  };
+}
+
+function toSettings(pairs) {
+  const kv = {};
+  pairs.slice(1).forEach(function (r) { if (r.length > 1 && r[0].trim()) kv[r[0].trim()] = r[1].trim(); });
+  const sellers = [];
+  for (let n = 1; kv["seller" + n + "_name"]; n++) {
+    const s = {};
+    ["name", "sms", "whatsapp", "discord"].forEach(function (k) { s[k] = kv["seller" + n + "_" + k] || ""; });
+    sellers.push(s);
+  }
+  const out = { discount: Number(kv.discount) || 0.10, sellers: sellers };
+  ["location_now", "banner", "payment_methods", "trades"].forEach(function (k) { out[k] = kv[k] || ""; });
+  return out;
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [], cell = "", quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+      else if (c === '"') quoted = false;
+      else cell += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+    else if (c !== "\r") cell += c;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+
 // ---- Filter ----
 function norm(s) {
   return String(s).toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
@@ -187,7 +235,7 @@ function rowHtml(it, settings, open) {
 
 function init() {
   const data = JSON.parse(document.getElementById("data").textContent);
-  const settings = data.settings;
+  let settings = data.settings;
   let items = defaultSort(data.items);
   let chip = "", query = "", openId = "";
 
@@ -244,17 +292,47 @@ function init() {
   });
 
   // Header details from settings
-  const s1 = sellerFor(settings, "");
-  $("where").textContent = settings.location_now ? "Find us: " + settings.location_now : "";
-  $("banner").textContent = settings.banner || "";
-  $("bar").innerHTML = contactButtons(settings, "", GENERIC_TEXT, "Text us");
-  $("pay").textContent = (settings.payment_methods ? "We take " + settings.payment_methods + ". " : "") +
-    (settings.trades === "Y" ? "Trades welcome." : "");
-  $("plain").textContent = [s1.sms ? "Text " + prettyPhone(s1.sms) : "", s1.discord ? "Discord: " + s1.discord : ""].filter(Boolean).join(" · ");
+  function applySettings() {
+    const s1 = sellerFor(settings, "");
+    $("pct").textContent = Math.round(settings.discount * 100);
+    $("where").textContent = settings.location_now ? "Find us: " + settings.location_now : "";
+    $("banner").textContent = settings.banner || "";
+    $("bar").innerHTML = contactButtons(settings, "", GENERIC_TEXT, "Text us");
+    $("pay").textContent = (settings.payment_methods ? "We take " + settings.payment_methods + ". " : "") +
+      (settings.trades === "Y" ? "Trades welcome." : "");
+    $("plain").textContent = [s1.sms ? "Text " + prettyPhone(s1.sms) : "", s1.discord ? "Discord: " + s1.discord : ""].filter(Boolean).join(" · ");
 
+  }
+
+  // After first paint, re-read the published sheet. If it fails, the baked snapshot stays.
+  let shown = JSON.stringify([settings, data.items]);
+  function refresh() {
+    if (!data.live) return;
+    const get = function (u) {
+      return fetch(u, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); });
+    };
+    Promise.all([get(data.live.items), get(data.live.settings)]).then(function (texts) {
+      const rows = parseCsv(texts[0]), head = rows[0] || [], pairs = parseCsv(texts[1]);
+      if (head.indexOf("ID") < 0 || head.indexOf("Status") < 0 || (pairs[0] || [])[0] !== "key") return; // not our sheet
+      const st = toSettings(pairs);
+      const fresh = rows.slice(1).map(function (r) {
+        const o = {};
+        head.forEach(function (h, i) { o[h] = r[i]; });
+        return toItem(o, st.discount);
+      }).filter(Boolean);
+      const now = JSON.stringify([st, fresh]);
+      if (now === shown) return;
+      shown = now; settings = st; items = defaultSort(fresh);
+      applySettings(); renderChips(); render();
+    }).catch(function () {});
+  }
+
+  applySettings();
   renderChips();
   render();
+  refresh();
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
 }
 
 if (typeof document !== "undefined") init();
-if (typeof module !== "undefined") module.exports = { priceRow: priceRow, search: search, norm: norm };
+if (typeof module !== "undefined") module.exports = { priceRow: priceRow, search: search, norm: norm, parseCsv: parseCsv, toItem: toItem, toSettings: toSettings };

@@ -1,0 +1,20 @@
+name: Rebuild snapshot
+# Re-bakes index.html from the published sheet so the first paint is fresh.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/test_pricing.py && node tests/test_pricing.js
+      - run: python3 build.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || (git commit -m "Rebuild snapshot from sheet" && git push)

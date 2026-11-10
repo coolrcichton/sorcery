@@ -1,7 +1,7 @@
 // Run: node tests/test_pricing.js
 const assert = require("assert");
 const path = require("path");
-const { priceRow, search } = require(path.join(__dirname, "..", "page.js"));
+const { priceRow, search, parseCsv } = require(path.join(__dirname, "..", "page.js"));
 const cases = require("./pricing_cases.json");
 
 let failed = 0;
@@ -35,6 +35,9 @@ for (const [q, want] of filterCases) {
   console.log((ok ? "PASS  " : "FAIL  ") + 'filter "' + q + '" -> ' + JSON.stringify(names(q)));
 }
 assert.strictEqual(search(items, "zzzzzz").closest.length, 3);
+
+assert.deepStrictEqual(parseCsv('a,b\r\n"x, ""y""",2\n"line\nbreak",\n'), [["a", "b"], ['x, "y"', "2"], ["line\nbreak", ""]]);
+console.log("PASS  parseCsv handles quotes, commas and line breaks");
 
 console.log("\n" + (failed ? failed + " failed" : "all passed"));
 process.exit(failed ? 1 : 0);
