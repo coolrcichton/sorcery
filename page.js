@@ -354,7 +354,16 @@ function init() {
   }
 
   // After first paint, re-read the published sheet. If it fails, the baked snapshot stays.
-  let shown = JSON.stringify([settings, data.items]);
+  // Compare what matters, in a fixed order, so the baked snapshot and a live read of the same sheet look identical.
+  function sigItems(list) {
+    return JSON.stringify(list.map(function (i) {
+      return [i.id, i.type, i.name, i.set, i.finish, i.cond, i.qty, i.link, i.photo, i.notes, i.featured, i.hold, i.ref, i.src, i.event, i.saving];
+    }));
+  }
+  function sigSettings(st) {
+    return JSON.stringify([st.discount, st.location_now, st.banner, st.payment_methods, st.trades, contact(st).sms, contact(st).whatsapp, contact(st).discord]);
+  }
+  let shownItems = sigItems(data.items), shownSettings = sigSettings(settings);
   function refresh() {
     if (!data.live) return;
     const get = function (u) {
@@ -369,10 +378,13 @@ function init() {
         head.forEach(function (h, i) { o[h] = r[i]; });
         return toItem(o, st.discount);
       }).filter(Boolean);
-      const now = JSON.stringify([st, fresh]);
-      if (now === shown) return;
-      shown = now; settings = st; items = defaultSort(fresh);
-      applySettings(); renderFeatured(); renderChips(); render();
+      const nowItems = sigItems(fresh), nowSettings = sigSettings(st);
+      if (nowItems === shownItems && nowSettings === shownSettings) return;
+      const stockChanged = nowItems !== shownItems;
+      shownItems = nowItems; shownSettings = nowSettings; settings = st; items = defaultSort(fresh);
+      applySettings();
+      if (stockChanged) renderFeatured(); // keep the strip still when only the location or banner changed
+      renderChips(); render();
     }).catch(function () {});
   }
 
