@@ -234,6 +234,8 @@ function rowHtml(it, settings, open, thumb) {
     if (art) more += '<div class="stage"><div class="card' + (shiny ? " shiny" : "") + '"><img src="' + esc(art) +
       '" alt="' + esc(it.name) + '"></div></div>';
     if (it.notes) more += "<p>" + esc(it.notes) + "</p>";
+    if (it.top8 && settings.top8) more += "<p>Played in " + it.top8 + " of " + settings.top8.decks + " Top 8 decks from " + settings.top8.events +
+      ' events tracked by <a href="' + esc(settings.top8.source) + '" target="_blank" rel="noopener noreferrer">Sorcerers Summit</a>, any printing.</p>';
     more += '<p class="acts">' + contactButtons(settings, wantText(it), "I want this") + "</p>";
     if (it.link) more += '<p class="links"><a href="' + esc(it.link) + '" target="_blank" rel="noopener noreferrer">Check on TCGplayer</a></p>';
     more += "</div>";
@@ -242,7 +244,8 @@ function rowHtml(it, settings, open, thumb) {
     '<div class="main" role="button" tabindex="0" aria-expanded="' + (open ? "true" : "false") + '" data-id="' + esc(it.id) + '">' +
     (small ? '<img class="thumb" src="' + esc(small) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="thumb"></span>') +
     '<div class="info"><div class="name">' + esc(it.name) + '</div><div class="meta">' + meta +
-    (it.hold ? ' <span class="hold">On hold</span>' : "") + "</div></div>" +
+    (it.hold ? ' <span class="hold">On hold</span>' : "") + "</div>" +
+    (it.top8 ? '<div class="t8">In ' + it.top8 + " Top 8 deck" + (it.top8 > 1 ? "s" : "") + "</div>" : "") + "</div>" +
     '<div class="price">' + price + "</div></div>" + more + "</li>";
 }
 
@@ -256,8 +259,16 @@ function featuredHtml(picks) {
 
 function init() {
   const data = JSON.parse(document.getElementById("data").textContent);
+  // Tournament counts are per card name, so every printing of a card shares one number.
+  const top8 = {};
+  Object.keys((data.top8 || {}).cards || {}).forEach(function (n) { top8[norm(n)] = data.top8.cards[n]; });
+  function tag(list, st) {
+    list.forEach(function (it) { it.top8 = top8[norm(it.name)] || 0; });
+    st.top8 = data.top8;
+    return list;
+  }
   let settings = data.settings;
-  let items = defaultSort(data.items);
+  let items = defaultSort(tag(data.items, settings));
   let chip = "", query = "", openId = "";
 
   const $ = function (id) { return document.getElementById(id); };
@@ -381,7 +392,7 @@ function init() {
       const nowItems = sigItems(fresh), nowSettings = sigSettings(st);
       if (nowItems === shownItems && nowSettings === shownSettings) return;
       const stockChanged = nowItems !== shownItems;
-      shownItems = nowItems; shownSettings = nowSettings; settings = st; items = defaultSort(fresh);
+      shownItems = nowItems; shownSettings = nowSettings; settings = st; items = defaultSort(tag(fresh, st));
       applySettings();
       if (stockChanged) renderFeatured(); // keep the strip still when only the location or banner changed
       renderChips(); render();

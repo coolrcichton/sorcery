@@ -58,7 +58,8 @@ def main(public_src, settings_src):
     settings = to_settings(read_csv(settings_src))
     rows = read_csv(public_src)
     items = [to_item(dict(zip(rows[0], r)), settings["discount"]) for r in rows[1:]]
-    data = {"settings": settings, "items": [i for i in items if i], "live": LIVE}
+    top8 = json.load(open(os.path.join(HERE, "top8.json"), encoding="utf-8"))  # snapshot of Sorcerers Summit Top 8 counts
+    data = {"settings": settings, "items": [i for i in items if i], "live": LIVE, "top8": top8}
 
     read = lambda name: open(os.path.join(HERE, name), encoding="utf-8").read()
     js = read("page.js")
