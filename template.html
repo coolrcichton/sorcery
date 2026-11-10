@@ -22,29 +22,33 @@
 }.foil{filter:brightness(1.8)}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;font:16px/1.25 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--paper);padding-bottom:68px}
-main,footer,.wrap{max-width:640px;margin:0 auto;padding:0 12px}
+body{margin:0;font:16px/1.25 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--paper);padding-bottom:72px}
+main,footer,.wrap{max-width:640px;margin:0 auto;padding:0 16px}
 
 /* The shop sign: the one loud thing on the page */
 header{background:var(--sign);color:var(--on-sign);border-bottom:3px double var(--gilt)}
-header .wrap{padding-top:8px;padding-bottom:8px}
-h1{font:700 28px/1.1 var(--serif);letter-spacing:.01em;color:var(--gilt);margin:0}
-header p{margin:2px 0 0}
-.tag{display:inline-block;padding:1px 8px;margin-right:6px;background:var(--gilt);color:#1d1a14;font-weight:700;border-radius:3px}
+header .wrap{padding-top:16px;padding-bottom:16px;text-align:center}
+h1{font:700 32px/1.1 var(--serif);letter-spacing:.01em;color:var(--gilt);margin:0}
+header p{margin:0}
+.sub{margin-top:6px}
+.offer{margin-top:12px}
+.tag{display:inline-block;padding:4px 12px;background:var(--gilt);color:#1d1a14;font-weight:700;border-radius:4px}
+.perk{display:block;margin-top:8px}
 #banner:empty,#where:empty{display:none}
-.hello{font:italic 16px/1.3 var(--serif);margin:8px 0 0}
-#where{font-weight:700;margin:6px 0 0}
+.hello{font:italic 16px/1.4 var(--serif);margin:12px 0 0;text-align:center}
+#where{font-weight:700;margin:10px 0 0;text-align:center}
+#banner{margin:10px 0 0;text-align:center}
 
-#filter{display:block;width:100%;height:44px;margin:8px 0 6px;padding:0 12px;font:inherit;color:var(--ink);background:transparent;border:2px solid var(--ink);border-radius:6px}
+#filter{display:block;width:100%;height:48px;margin:12px 0 10px;padding:0 14px;font:inherit;color:var(--ink);background:transparent;border:2px solid var(--ink);border-radius:6px}
 #filter::placeholder{color:var(--soft);opacity:1}
-#chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+#chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
 #chips::-webkit-scrollbar{display:none}
 #chips button{flex:none;min-height:44px;padding:0 14px;font:inherit;color:var(--ink);background:transparent;border:1px solid var(--soft);border-radius:22px}
 #chips button[aria-pressed=true]{background:var(--sign);color:var(--on-sign);border-color:var(--sign)}
 
 ul{list-style:none;margin:0;padding:0}
 .row{border-top:1px solid var(--rule);scroll-margin:8px 0 72px}
-.main{display:flex;align-items:center;gap:10px;min-height:64px;padding:4px 0;cursor:pointer}
+.main{display:flex;align-items:center;gap:12px;min-height:64px;padding:8px 0;cursor:pointer}
 .thumb{flex:none;width:52px;height:52px;border-radius:6px;object-fit:cover;object-position:50% 22%;background:var(--slot)}
 .info{flex:1;min-width:0}
 .name{font:700 18px/1.2 var(--serif);overflow-wrap:anywhere}
@@ -71,7 +75,7 @@ ul{list-style:none;margin:0;padding:0}
 .btn.alt{background:#1c5a38}
 #empty{padding:12px 0}
 #empty p{margin:0 0 10px}
-#bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;padding:6px 12px calc(6px + env(safe-area-inset-bottom));background:var(--paper);border-top:1px solid var(--rule)}
+#bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;padding:8px 16px calc(8px + env(safe-area-inset-bottom));background:var(--paper);border-top:1px solid var(--rule)}
 #bar .btn{flex:1;margin:0;min-height:44px;line-height:44px}
 footer{padding-top:16px;padding-bottom:16px;border-top:1px solid var(--rule);margin-top:8px}
 footer p{margin:0 0 8px}
@@ -82,8 +86,8 @@ a:focus-visible,button:focus-visible,.main:focus-visible,#filter:focus-visible{o
 <body>
 <header><div class="wrap">
 <h1>Emily's Emporium</h1>
-<p>Sorcery singles and playmats</p>
-<p><span class="tag">About <span id="pct">__PCT__</span>% under TCGplayer</span>In hand today, no shipping.</p>
+<p class="sub">Sorcery singles and playmats</p>
+<p class="offer"><span class="tag">About <span id="pct">__PCT__</span>% under TCGplayer</span><span class="perk">In hand today, no shipping</span></p>
 </div></header>
 <main>
 <p class="hello">Thanks for checking out our collection! Interested in anything? Let us know.</p>
