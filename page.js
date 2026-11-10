@@ -409,7 +409,7 @@ function init() {
   if (!Array.isArray(seen)) seen = [];
   function isOwner() { try { return localStorage.getItem("owner") === "1"; } catch (e) { return false; } }
   function viewsUrl() {
-    const u = settings.views_url || "";
+    const u = settings.views_url || data.views_url || "";
     return /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u) ? u : "";
   }
   function paintViews() {

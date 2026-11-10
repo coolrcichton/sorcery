@@ -10,6 +10,8 @@ from pricing import price_row
 HERE = os.path.dirname(os.path.abspath(__file__))
 PUB = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjTrkoDzN6rdYyS7gDJy51Sj-Zgje6PS-4e9wu5MgMaTDIjAZNI_MYs5bTXr99AW3zQcMlOrXNRwKk/pub?single=true&output=csv&gid="
 LIVE = {"items": PUB + "2131651168", "settings": PUB + "1572978540"}
+# The owner's view counter (apps-script/Code.gs deployed from the inventory sheet). A views_url row on the Settings tab overrides it.
+VIEWS_URL = "https://script.google.com/macros/s/AKfycbyr7UHauuf_31F3j04MX_ZTDIZEA7tixf8r9OJtFfC1y7JEP9iAgrBc_YFPp6DZAVv26A/exec"
 
 
 def read_csv(src):
@@ -61,7 +63,7 @@ def main(public_src, settings_src):
     rows = read_csv(public_src)
     items = [to_item(dict(zip(rows[0], r)), settings["discount"]) for r in rows[1:]]
     top8 = json.load(open(os.path.join(HERE, "top8.json"), encoding="utf-8"))  # snapshot of Sorcerers Summit Top 8 counts
-    data = {"settings": settings, "items": [i for i in items if i], "live": LIVE, "top8": top8}
+    data = {"settings": settings, "items": [i for i in items if i], "live": LIVE, "top8": top8, "views_url": VIEWS_URL}
 
     read = lambda name: open(os.path.join(HERE, name), encoding="utf-8").read()
     js = read("page.js")
