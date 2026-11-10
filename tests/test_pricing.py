@@ -14,6 +14,8 @@ for c in cases:
 from build import to_item
 evil = to_item({"Status": "Available", "Name": "x", "TCGplayer Link": "javascript:alert(1)", "Photo URL": "data:text/html,x"}, 0.1)
 assert evil["link"] == "" and evil["photo"] == ""
+assert to_item({"Status": "Available", "Name": "x", "TCGplayer Link": "https://evil.example/tcgplayer.com/"}, 0.1)["link"] == ""
+assert to_item({"Status": "Available", "Name": "x", "TCGplayer Link": "https://www.tcgplayer.com/product/1/x?utm=1"}, 0.1)["link"] == "https://www.tcgplayer.com/product/1/x"
 print("PASS  non-https links and photos from the sheet are dropped")
 print(f"\n{len(cases) - failed} of {len(cases)} passed")
 sys.exit(1 if failed else 0)

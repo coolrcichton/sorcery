@@ -41,6 +41,8 @@ console.log("PASS  parseCsv handles quotes, commas and line breaks");
 
 const evil = toItem({ Status: "Available", Name: "<img src=x onerror=alert(1)>", "TCGplayer Link": "javascript:alert(1)", "Photo URL": "data:text/html,x" }, 0.1);
 assert.strictEqual(evil.link, ""); assert.strictEqual(evil.photo, "");
+assert.strictEqual(toItem({ Status: "Available", Name: "x", "TCGplayer Link": "https://evil.example/tcgplayer.com/" }, 0.1).link, "");
+assert.strictEqual(toItem({ Status: "Available", Name: "x", "TCGplayer Link": "https://www.tcgplayer.com/product/1/x?utm=1" }, 0.1).link, "https://www.tcgplayer.com/product/1/x");
 console.log("PASS  non-https links and photos from the sheet are dropped");
 assert.strictEqual(toItem({ Status: "Sold", Name: "x", "Market Price": "50" }, 0.1).sold, true);
 assert.strictEqual(toItem({ Status: "Hidden", Name: "x", "Market Price": "50" }, 0.1), null);

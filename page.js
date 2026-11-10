@@ -35,6 +35,7 @@ function priceRow(row, discount) {
 // ---- Sheet rows to page data: ports of to_item and to_settings in build.py ----
 // Sheet cells that become links or image sources must be plain https URLs (blocks javascript: and the like).
 function httpsUrl(u) { return /^https:\/\/[^\s"'<>]+$/i.test(u) ? u : ""; }
+function tcgUrl(u) { return /^https:\/\/(www\.)?tcgplayer\.com\//i.test(u) ? httpsUrl(u) : ""; }
 
 function toItem(row, discount) {
   const g = function (k) { return String(row[k] == null ? "" : row[k]).trim(); };
@@ -46,7 +47,7 @@ function toItem(row, discount) {
     id: g("ID"), type: g("Type"), name: g("Name"), set: g("Set"), finish: g("Finish"),
     cond: g("Condition") || "NM", // owner's call: blank means Near Mint
     qty: g("Qty") ? Math.trunc(Number(g("Qty"))) : 1,
-    link: httpsUrl(g("TCGplayer Link").split("?")[0]),
+    link: tcgUrl(g("TCGplayer Link").split("?")[0]),
     photo: httpsUrl(g("Photo URL")), notes: g("Notes"),
     featured: g("Featured").toUpperCase() === "Y", hold: p.hold,
     ref: p.reference, src: p.source, event: p.event, saving: p.saving
@@ -282,12 +283,13 @@ function featuredHtml(picks, clone) {
 }
 
 function init() {
+  if (window.top !== window.self) { document.body.textContent = "Open this page directly: " + location.href.split("#")[0]; return; }
   const data = JSON.parse(document.getElementById("data").textContent);
   // Tournament counts are per card name, so every printing of a card shares one number.
   const top8 = {};
   Object.keys((data.top8 || {}).cards || {}).forEach(function (n) { top8[norm(n)] = data.top8.cards[n]; });
   function tag(list, st) {
-    list.forEach(function (it) { it.top8 = top8[norm(it.name)] || 0; });
+    list.forEach(function (it) { it.top8 = Math.floor(Number(top8[norm(it.name)])) || 0; });
     st.top8 = data.top8;
     return list;
   }
@@ -300,7 +302,10 @@ function init() {
   // Want list: ids the buyer picked, kept across reloads on their own phone when the browser allows it.
   let want = [];
   try { want = JSON.parse(localStorage.getItem("want") || "[]"); } catch (e) {}
-  if (!Array.isArray(want)) want = [];
+  const cleanIds = function (a) {
+    return (Array.isArray(a) ? a : []).filter(function (x) { return typeof x === "string" && x.length <= 20; }).slice(0, 300);
+  };
+  want = cleanIds(want);
   const wanted = function (id) { return want.indexOf(id) >= 0; };
   function saveWant() { try { localStorage.setItem("want", JSON.stringify(want)); } catch (e) {} }
 
@@ -351,10 +356,12 @@ function init() {
   function toggleWant(id) {
     want = wanted(id) ? want.filter(function (x) { return x !== id; }) : want.concat(id);
     saveWant();
-    Array.prototype.forEach.call(document.querySelectorAll('.main[data-id="' + id + '"]'), function (m) {
-      m.parentNode.classList.toggle("wanted", wanted(id));
+    Array.prototype.forEach.call(document.querySelectorAll(".main[data-id]"), function (m) {
+      if (m.dataset.id === id) m.parentNode.classList.toggle("wanted", wanted(id));
     });
-    Array.prototype.forEach.call(document.querySelectorAll('[data-want="' + id + '"]'), function (b) { b.textContent = wantLabel(wanted(id)); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-want]"), function (b) {
+      if (b.dataset.want === id) b.textContent = wantLabel(wanted(id));
+    });
     renderBar();
   }
 
@@ -403,10 +410,11 @@ function init() {
   // Real view counts. Opening a card records one view per device; counts live in the owner's own sheet.
   // Nothing shows until a card has SHOW_VIEWS_AT views, and nothing breaks if the counter is not set up.
   const SHOW_VIEWS_AT = 5;
+  const MAX_VIEWS = 2000; // more views than the event has attendees means the counter was tampered with: show nothing
   let views = {}, viewsLoaded = "";
   let seen = [];
   try { seen = JSON.parse(localStorage.getItem("seen") || "[]"); if (location.hash === "#owner") localStorage.setItem("owner", "1"); } catch (e) {}
-  if (!Array.isArray(seen)) seen = [];
+  seen = cleanIds(seen);
   function isOwner() { try { return localStorage.getItem("owner") === "1"; } catch (e) { return false; } }
   function viewsUrl() {
     const u = settings.views_url || data.views_url || "";
@@ -430,7 +438,7 @@ function init() {
       .then(function (r) { return r.json(); })
       .then(function (j) {
         const next = {};
-        Object.keys(j || {}).forEach(function (k) { const n = Math.floor(Number(j[k])); if (n > 0) next[k] = n; });
+        Object.keys(j || {}).forEach(function (k) { const n = Math.floor(Number(j[k])); if (n > 0 && n <= MAX_VIEWS) next[k] = n; });
         views = next; paintViews();
       }).catch(function () {});
   }
@@ -582,4 +590,4 @@ function init() {
 }
 
 if (typeof document !== "undefined") init();
-if (typeof module !== "undefined") module.exports = { priceRow: priceRow, search: search, norm: norm, parseCsv: parseCsv, toItem: toItem, toSettings: toSettings, httpsUrl: httpsUrl, pickFeatured: pickFeatured };
+if (typeof module !== "undefined") module.exports = { priceRow: priceRow, search: search, norm: norm, parseCsv: parseCsv, toItem: toItem, toSettings: toSettings, httpsUrl: httpsUrl, tcgUrl: tcgUrl, pickFeatured: pickFeatured };

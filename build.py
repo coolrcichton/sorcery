@@ -27,6 +27,10 @@ def https_url(u):
     return u if re.fullmatch(r"https://[^\s\"'<>]+", u, re.I) else ""
 
 
+def tcg_url(u):
+    return https_url(u) if re.match(r"https://(www\.)?tcgplayer\.com/", u, re.I) else ""
+
+
 def to_item(row, discount):
     """One sheet row to the shape the page renders, or None if it must not show."""
     g = lambda k: (row.get(k) or "").strip()
@@ -39,7 +43,7 @@ def to_item(row, discount):
         "id": g("ID"), "type": g("Type"), "name": g("Name"), "set": g("Set"), "finish": g("Finish"),
         "cond": g("Condition") or "NM",  # owner's call: blank means Near Mint
         "qty": int(float(g("Qty"))) if g("Qty") else 1,
-        "link": https_url(g("TCGplayer Link").split("?")[0]),
+        "link": tcg_url(g("TCGplayer Link").split("?")[0]),
         "photo": https_url(g("Photo URL")), "notes": g("Notes"),
         "featured": g("Featured").upper() == "Y", "hold": p["hold"],
         "ref": p["reference"], "src": p["source"], "event": p["event"], "saving": p["saving"],
