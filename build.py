@@ -29,9 +29,11 @@ def to_item(row, discount):
     """One sheet row to the shape the page renders, or None if it must not show."""
     g = lambda k: (row.get(k) or "").strip()
     p = price_row(row, discount)
-    if not p["visible"] or not g("Name"):
+    sold = g("Status") == "Sold"  # shown greyed out with a SOLD stamp; Hidden removes a row entirely
+    if (not p["visible"] and not sold) or not g("Name"):
         return None
     return {
+        "sold": sold,
         "id": g("ID"), "type": g("Type"), "name": g("Name"), "set": g("Set"), "finish": g("Finish"),
         "cond": g("Condition") or "NM",  # owner's call: blank means Near Mint
         "qty": int(float(g("Qty"))) if g("Qty") else 1,

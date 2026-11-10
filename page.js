@@ -39,8 +39,10 @@ function httpsUrl(u) { return /^https:\/\/[^\s"'<>]+$/i.test(u) ? u : ""; }
 function toItem(row, discount) {
   const g = function (k) { return String(row[k] == null ? "" : row[k]).trim(); };
   const p = priceRow(row, discount);
-  if (!p.visible || !g("Name")) return null;
+  const sold = g("Status") === "Sold"; // shown greyed out with a SOLD stamp; Hidden removes a row entirely
+  if ((!p.visible && !sold) || !g("Name")) return null;
   return {
+    sold: sold,
     id: g("ID"), type: g("Type"), name: g("Name"), set: g("Set"), finish: g("Finish"),
     cond: g("Condition") || "NM", // owner's call: blank means Near Mint
     qty: g("Qty") ? Math.trunc(Number(g("Qty"))) : 1,
@@ -140,6 +142,9 @@ function defaultSort(items) {
   });
 }
 
+const STAPLE = 100; // Top 8 decks needed for the "Staple" badge
+const CHASE = 100;  // event price needed for the "Chase" badge
+
 function shuffle(list) {
   const a = list.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -151,13 +156,14 @@ function shuffle(list) {
 
 // Featured strip: always the 5 priciest items, plus 5 picked at random from the next 15, in a fresh order each load.
 function pickFeatured(items) {
-  const byPrice = items.filter(function (i) { return i.event != null && artUrl(i, 200); })
+  const byPrice = items.filter(function (i) { return !i.sold && i.event != null && artUrl(i, 200); })
     .sort(function (a, b) { return b.event - a.event; });
   return shuffle(byPrice.slice(0, 5).concat(shuffle(byPrice.slice(5, 20)).slice(0, 5)));
 }
 
 function chipDefs(items) {
   const defs = [
+    { key: "staples", label: "Staples", test: function (i) { return i.top8 >= STAPLE; } },
     { key: "playmats", label: "Playmats", test: function (i) { return i.type === "Playmat"; } },
     { key: "foil", label: "Foil", test: function (i) { return /foil/i.test(i.finish); } },
     { key: "promo", label: "Promo", test: function (i) { return i.set === "Promo"; } },
@@ -220,43 +226,56 @@ function top8Text(it) {
   return "\uD83C\uDFC6 In <b>" + it.top8 + "</b> Top 8 deck" + (it.top8 > 1 ? "s" : "") + "!";
 }
 
-function rowHtml(it, settings, open) {
+function badges(it) {
+  return (it.top8 >= STAPLE ? ' <span class="badge staple">Staple</span>' : "") +
+    (it.event != null && it.event >= CHASE ? ' <span class="badge chase">Chase</span>' : "");
+}
+
+function wantLabel(wanted) { return wanted ? "✓ On my list" : "+ Add to my list"; }
+
+// The panel under an opened row.
+function moreHtml(it, settings, wanted) {
+  let h = '<div class="more"><div class="morein">';
+  const art = artUrl(it, 400);
+  if (art) h += '<div class="stage"><div class="card' + (/foil/i.test(it.finish) ? " shiny" : "") + '"><img src="' + esc(art) +
+    '" alt="' + esc(it.name) + '" draggable="false"></div></div>';
+  if (it.notes) h += "<p>" + esc(it.notes) + "</p>";
+  if (it.top8 && settings.top8) h += '<p class="t8big">' + top8Text(it) + '<span class="credit">Tracked by <a href="' + esc(settings.top8.source) +
+    '" target="_blank" rel="noopener noreferrer">Sorcerers Summit</a></span></p>';
+  h += '<p class="acts">' + contactButtons(settings, wantText(it), "I want this") +
+    '<button type="button" class="btn ghost" data-want="' + esc(it.id) + '">' + wantLabel(wanted) + "</button></p>";
+  if (it.link) h += '<p class="links"><a href="' + esc(it.link) + '" target="_blank" rel="noopener noreferrer">Check on TCGplayer</a></p>';
+  return h + "</div></div>";
+}
+
+function rowHtml(it, settings, open, wanted) {
   const shiny = /foil/i.test(it.finish);
   const meta = [esc(it.set), shiny ? '<span class="foil">' + esc(it.finish) + "</span>" : "", esc(it.cond), it.qty > 1 ? "×" + it.qty : ""]
     .filter(Boolean).join(" · ");
   const small = artUrl(it, 200);
   let price = "";
-  if (it.ref != null) price += '<div class="ref">' + esc(it.src) + " $" + it.ref.toFixed(2) + "</div>";
-  price += '<div class="ev">' + (it.event != null ? "$" + it.event : "Ask") + "</div>";
-  if (it.saving != null) price += '<div class="save">Save $' + it.saving + "</div>";
-
-  let more = "";
-  if (open) {
-    more = '<div class="more">';
-    const art = artUrl(it, 400);
-    if (art) more += '<div class="stage"><div class="card' + (shiny ? " shiny" : "") + '"><img src="' + esc(art) +
-      '" alt="' + esc(it.name) + '"></div></div>';
-    if (it.notes) more += "<p>" + esc(it.notes) + "</p>";
-    if (it.top8 && settings.top8) more += '<p class="t8big">' + top8Text(it) + '<span class="credit">Tracked by <a href="' + esc(settings.top8.source) +
-      '" target="_blank" rel="noopener noreferrer">Sorcerers Summit</a></span></p>';
-    more += '<p class="acts">' + contactButtons(settings, wantText(it), "I want this") + "</p>";
-    if (it.link) more += '<p class="links"><a href="' + esc(it.link) + '" target="_blank" rel="noopener noreferrer">Check on TCGplayer</a></p>';
-    more += "</div>";
+  if (it.sold) price = '<span class="stamp">SOLD</span>';
+  else {
+    if (it.ref != null) price += '<div class="ref">' + esc(it.src) + " $" + it.ref.toFixed(2) + "</div>";
+    price += '<div class="ev">' + (it.event != null ? "$" + it.event : "Ask") + "</div>";
+    if (it.saving != null) price += '<div class="save">Save $' + it.saving + "</div>";
   }
-  return '<li class="row' + (open ? " open" : "") + '">' +
-    '<div class="main" role="button" tabindex="0" aria-expanded="' + (open ? "true" : "false") + '" data-id="' + esc(it.id) + '">' +
+  // Sold rows are not buttons: there is nothing to open.
+  const attrs = it.sold ? "" : ' role="button" tabindex="0" aria-expanded="' + (open ? "true" : "false") + '"';
+  return '<li class="row' + (open ? " open" : "") + (it.sold ? " sold" : "") + (wanted ? " wanted" : "") + '">' +
+    '<div class="main"' + attrs + ' data-id="' + esc(it.id) + '">' +
     (small ? '<img class="thumb" src="' + esc(small) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="thumb"></span>') +
-    '<div class="info"><div class="name">' + esc(it.name) + '</div><div class="meta">' + meta +
+    '<div class="info"><div class="name">' + esc(it.name) + (it.sold ? "" : badges(it)) + '</div><div class="meta">' + meta +
     (it.hold ? ' <span class="hold">On hold</span>' : "") + "</div>" +
     (it.top8 ? '<div class="t8">' + top8Text(it) + "</div>" : "") + "</div>" +
-    '<div class="price">' + price + "</div></div>" + more + "</li>";
+    '<div class="price">' + price + "</div></div>" + (open && !it.sold ? moreHtml(it, settings, wanted) : "") + "</li>";
 }
 
 // clone: a second copy of the strip that makes the loop seamless; hidden from screen readers and the tab key.
 function featuredHtml(picks, clone) {
   return picks.map(function (it) {
     return "<li" + (clone ? ' aria-hidden="true"' : "") + '><button type="button" class="fcard" data-id="' + esc(it.id) + '"' + (clone ? ' tabindex="-1"' : "") + ">" +
-      '<img src="' + esc(artUrl(it, 200)) + '" alt="" width="100" height="140" loading="lazy">' +
+      '<span class="fart' + (/foil/i.test(it.finish) ? " shiny" : "") + '"><img src="' + esc(artUrl(it, 200)) + '" alt="" width="100" height="140" loading="lazy"></span>' +
       '<span class="fname">' + esc(it.name) + '</span><span class="fprice">$' + it.event + "</span></button></li>";
   }).join("");
 }
@@ -273,13 +292,22 @@ function init() {
   }
   let settings = data.settings;
   let items = defaultSort(tag(data.items, settings));
-  let chip = "", query = "", openId = "";
+  let chip = "", query = "", openId = "", liveOk = false;
+  const avail = function () { return items.filter(function (i) { return !i.sold; }); };
+  const byId = function (id) { return items.filter(function (i) { return i.id === id; })[0]; };
+
+  // Want list: ids the buyer picked, kept across reloads on their own phone when the browser allows it.
+  let want = [];
+  try { want = JSON.parse(localStorage.getItem("want") || "[]"); } catch (e) {}
+  if (!Array.isArray(want)) want = [];
+  const wanted = function (id) { return want.indexOf(id) >= 0; };
+  function saveWant() { try { localStorage.setItem("want", JSON.stringify(want)); } catch (e) {} }
 
   const $ = function (id) { return document.getElementById(id); };
   const list = $("list"), chipsEl = $("chips"), filter = $("filter"), empty = $("empty");
 
   function renderChips() {
-    const defs = chipDefs(items);
+    const defs = chipDefs(avail());
     chipsEl.innerHTML = '<button type="button" data-chip=""' + (chip === "" ? ' aria-pressed="true"' : "") + ">All</button>" +
       defs.map(function (d) {
         return '<button type="button" data-chip="' + esc(d.key) + '"' + (chip === d.key ? ' aria-pressed="true"' : "") + ">" + esc(d.label) + "</button>";
@@ -287,21 +315,45 @@ function init() {
   }
 
   function render() {
-    const def = chipDefs(items).filter(function (d) { return d.key === chip; })[0];
+    const def = chipDefs(avail()).filter(function (d) { return d.key === chip; })[0];
     const pool = def ? items.filter(def.test) : items;
     const res = search(pool, query);
-    list.innerHTML = res.hits.map(function (it) { return rowHtml(it, settings, it.id === openId); }).join("");
+    list.innerHTML = res.hits.map(function (it) { return rowHtml(it, settings, it.id === openId, wanted(it.id)); }).join("");
     if (res.hits.length) {
       empty.hidden = true;
     } else {
-      const closest = query ? search(items, query).closest : [];
+      const closest = query ? search(avail(), query).closest : [];
       empty.hidden = false;
       empty.innerHTML = "<p>Not on the list. We have more in the binder, text us what you need.</p>" +
         '<p class="acts">' + contactButtons(settings, GENERIC_TEXT + query, "Text us") + "</p>" +
         (closest.length ? "<p>Closest matches:</p><ul>" +
-          closest.map(function (it) { return rowHtml(it, settings, false); }).join("") + "</ul>" : "");
+          closest.map(function (it) { return rowHtml(it, settings, false, wanted(it.id)); }).join("") + "</ul>" : "");
     }
-    filter.placeholder = "Filter " + items.length + " items" + (items[0] ? ", e.g. " + items[0].name : "");
+    const n = avail().length;
+    filter.placeholder = "Filter " + n + " items" + (items[0] ? ", e.g. " + items[0].name : "");
+    $("live").innerHTML = '<span class="dot' + (liveOk ? " on" : "") + '"></span>' + n + " item" + (n === 1 ? "" : "s") + (liveOk ? ", updated live" : "");
+  }
+
+  // Bottom bar: a plain "Text us", or one message covering everything on the want list.
+  function renderBar() {
+    const w = avail().filter(function (i) { return wanted(i.id); });
+    if (!w.length) { $("bar").innerHTML = contactButtons(settings, GENERIC_TEXT, "Text us"); return; }
+    const total = w.reduce(function (n, i) { return n + (i.event || 0); }, 0);
+    const text = "Hi, I saw your Sorcery list and I'm interested in: " +
+      w.map(function (i) { return describe(i) + " [" + i.id + "]"; }).join("; ") +
+      (w.length > 1 ? ". Total $" + total : "") + ". Where can we meet off the event floor?";
+    $("bar").innerHTML = contactButtons(settings, text, "Message about " + w.length + " item" + (w.length > 1 ? "s" : "") + " · $" + total) +
+      '<button type="button" class="btn ghost" id="clearwant">Clear</button>';
+  }
+
+  function toggleWant(id) {
+    want = wanted(id) ? want.filter(function (x) { return x !== id; }) : want.concat(id);
+    saveWant();
+    Array.prototype.forEach.call(document.querySelectorAll('.main[data-id="' + id + '"]'), function (m) {
+      m.parentNode.classList.toggle("wanted", wanted(id));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-want="' + id + '"]'), function (b) { b.textContent = wantLabel(wanted(id)); });
+    renderBar();
   }
 
   // The featured strip drifts sideways and loops forever. Touching it pauses the drift for a few seconds.
@@ -345,16 +397,57 @@ function init() {
     if (open) open.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function closeRow(li) {
+    li.classList.remove("open");
+    li.querySelector(".main").setAttribute("aria-expanded", "false");
+    const m = li.querySelector(".more");
+    if (m) setTimeout(function () { if (!li.classList.contains("open")) m.remove(); }, 320); // after the slide
+  }
+
+  function openRow(li, it) {
+    const old = li.querySelector(".more");
+    if (old) old.remove();
+    li.insertAdjacentHTML("beforeend", moreHtml(it, settings, wanted(it.id)));
+    void li.offsetHeight; // lay it out closed first, so the slide has somewhere to start
+    li.classList.add("open");
+    li.querySelector(".main").setAttribute("aria-expanded", "true");
+  }
+
   function toggle(target) {
     const main = target.closest(".main");
-    if (!main) return;
-    // Tapping a "closest match" clears the failed filter so the row opens in the full list.
-    if (!empty.hidden) { query = ""; filter.value = ""; chip = ""; renderChips(); }
-    openId = openId === main.dataset.id ? "" : main.dataset.id;
-    render();
-    const open = list.querySelector(".row.open");
-    if (open) open.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (!main || !main.hasAttribute("role")) return; // sold rows don't open
+    const id = main.dataset.id;
+    if (!empty.hidden) { openFromFeatured(id); return; } // a "closest match": clear the failed filter and open it
+    const was = list.querySelector(".row.open");
+    if (was) closeRow(was);
+    if (openId === id) { openId = ""; return; }
+    openId = id;
+    const li = main.parentNode;
+    openRow(li, byId(id));
+    setTimeout(function () { li.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, 330);
   }
+
+  // Drag across an opened card and it tilts under the finger, shine following.
+  let heldCard = null;
+  function tilt(e) {
+    const st = heldCard.parentNode.getBoundingClientRect();
+    const x = Math.min(1, Math.max(0, (e.clientX - (st.left + st.width / 2)) / heldCard.offsetWidth + 0.5));
+    const y = Math.min(1, Math.max(0, (e.clientY - (st.top + st.height / 2)) / heldCard.offsetHeight + 0.5));
+    heldCard.style.transform = "rotateY(" + ((x - 0.5) * 36).toFixed(1) + "deg) rotateX(" + ((0.5 - y) * 24).toFixed(1) + "deg)";
+    heldCard.style.setProperty("--shine", Math.round(100 - x * 100) + "%");
+  }
+  list.addEventListener("pointerdown", function (e) {
+    const c = e.target.closest(".card");
+    if (!c) return;
+    heldCard = c; c.classList.add("held"); tilt(e);
+  });
+  document.addEventListener("pointermove", function (e) { if (heldCard) tilt(e); });
+  ["pointerup", "pointercancel"].forEach(function (ev) {
+    document.addEventListener(ev, function () {
+      if (!heldCard) return;
+      heldCard.classList.remove("held"); heldCard.style.transform = ""; heldCard = null;
+    });
+  });
 
   // Art that fails to load: drop the big card, blank the thumbnail.
   document.addEventListener("error", function (e) {
@@ -372,8 +465,10 @@ function init() {
     renderChips(); render();
   });
   document.addEventListener("click", function (e) {
-    const f = e.target.closest(".fcard");
+    const f = e.target.closest(".fcard"), w = e.target.closest("[data-want]");
     if (f) openFromFeatured(f.dataset.id);
+    else if (w) toggleWant(w.dataset.want);
+    else if (e.target.closest("#clearwant")) { want = []; saveWant(); render(); renderBar(); }
     else if (!e.target.closest("a")) toggle(e.target);
   });
   document.addEventListener("keydown", function (e) {
@@ -386,7 +481,7 @@ function init() {
     $("pct").textContent = Math.round(settings.discount * 100);
     $("where").textContent = settings.location_now ? "Find us: " + settings.location_now : "";
     $("banner").textContent = settings.banner || "";
-    $("bar").innerHTML = contactButtons(settings, GENERIC_TEXT, "Text us");
+    renderBar();
     $("pay").textContent = (settings.payment_methods ? "We take " + settings.payment_methods + ". " : "") +
       (settings.trades === "Y" ? "Trades welcome." : "");
     $("plain").textContent = [s1.sms ? "Text " + prettyPhone(s1.sms) : "", s1.discord ? "Discord: " + s1.discord : ""].filter(Boolean).join(" · ");
@@ -397,7 +492,7 @@ function init() {
   // Compare what matters, in a fixed order, so the baked snapshot and a live read of the same sheet look identical.
   function sigItems(list) {
     return JSON.stringify(list.map(function (i) {
-      return [i.id, i.type, i.name, i.set, i.finish, i.cond, i.qty, i.link, i.photo, i.notes, i.featured, i.hold, i.ref, i.src, i.event, i.saving];
+      return [i.id, i.type, i.name, i.set, i.finish, i.cond, i.qty, i.link, i.photo, i.notes, i.featured, i.hold, i.sold, i.ref, i.src, i.event, i.saving];
     }));
   }
   function sigSettings(st) {
@@ -419,6 +514,7 @@ function init() {
         return toItem(o, st.discount);
       }).filter(Boolean);
       const nowItems = sigItems(fresh), nowSettings = sigSettings(st);
+      if (!liveOk) { liveOk = true; $("live").querySelector(".dot").classList.add("on"); $("live").lastChild.textContent += ", updated live"; }
       if (nowItems === shownItems && nowSettings === shownSettings) return;
       const stockChanged = nowItems !== shownItems;
       shownItems = nowItems; shownSettings = nowSettings; settings = st; items = defaultSort(tag(fresh, st));

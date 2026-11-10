@@ -8,21 +8,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>Emily's Emporium · Sorcery singles and playmats</title>
-<link rel="icon" href="data:,">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231f3a2e'/%3E%3Crect x='5' y='5' width='54' height='54' rx='8' fill='none' stroke='%23e3c15a' stroke-width='2'/%3E%3Ctext x='32' y='46' font-family='Georgia,serif' font-size='40' font-weight='700' text-anchor='middle' fill='%23e3c15a'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="theme-color" content="#1f3a2e">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Emily's Emporium">
+<meta property="og:description" content="Sorcery singles and playmats. Price list with online prices alongside.">
+<meta property="og:url" content="https://coolrcichton.github.io/sorcery/">
+<meta property="og:image" content="https://coolrcichton.github.io/sorcery/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="description" content="Emily's Emporium: Sorcery: Contested Realm singles and playmats. Price list with online prices alongside.">
 <style>
 :root{
   --paper:#f3ecd8;--ink:#1d1a14;--soft:#5a5240;--rule:#d6caa8;--slot:#e6dcc0;
   --sign:#1f3a2e;--gilt:#e3c15a;--on-sign:#f3ecd8;--save:#1c5a38;--link:#234a8f;--win:#7a5600;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .3 0 0 0 0 .12 0 0 0 .1 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --edge:rgba(80,55,10,.07);
 }
 @media (prefers-color-scheme:dark){:root{
   --paper:#15130e;--ink:#efe6cf;--soft:#b9ad90;--rule:#3a3424;--slot:#262117;
-  --save:#86cda0;--link:#9dbcf5;--win:#e3c15a;
-}.foil{filter:brightness(1.8)}}
+  --save:#86cda0;--link:#9dbcf5;--win:#e3c15a;--edge:rgba(0,0,0,.3);
+}.stamp{border-color:#ff8a8a;color:#ff8a8a}.btn.ghost{border-color:var(--gilt)}.foil{filter:brightness(1.8)}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;font:16px/1.25 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--paper);padding-bottom:72px}
+body{margin:0;font:16px/1.25 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--paper) var(--grain);padding-bottom:72px}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;box-shadow:inset 0 0 70px var(--edge)}
 main,footer,.wrap{max-width:640px;margin:0 auto;padding:0 16px}
 
 /* The shop sign: the one loud thing on the page */
@@ -40,7 +53,12 @@ header p{margin:0}
 #where{font-weight:700;margin:10px 0 0;text-align:center}
 #banner{margin:10px 0 0;text-align:center}
 
-#filter{display:block;width:100%;height:48px;margin:12px 0 10px;padding:0 14px;font:inherit;color:var(--ink);background:transparent;border:2px solid var(--ink);border-radius:6px}
+#tools{position:sticky;top:0;z-index:2;margin:0 -16px;padding:10px 16px 8px;background:var(--paper) var(--grain)}
+#filter{display:block;width:100%;height:48px;padding:0 14px;font:inherit;color:var(--ink);background:var(--paper);border:2px solid var(--ink);border-radius:6px}
+#live{margin:0 0 8px;color:var(--soft)}
+.dot{display:inline-block;width:10px;height:10px;margin-right:8px;border-radius:50%;background:var(--soft)}
+.dot.on{background:#2e9e5b;animation:pulse 2s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(46,158,91,.6)}100%{box-shadow:0 0 0 9px rgba(46,158,91,0)}}
 #filter::placeholder{color:var(--soft);opacity:1}
 #chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
 #chips::-webkit-scrollbar{display:none}
@@ -49,17 +67,26 @@ header p{margin:0}
 
 ul{list-style:none;margin:0;padding:0}
 h2{font:700 18px/1.2 var(--serif);margin:14px 0 8px}
-#feat{display:flex;gap:12px;overflow-x:auto;margin:0 -16px;padding:0 16px 6px;scrollbar-width:none}
+#feat{display:flex;gap:12px;overflow-x:auto;margin:0 -16px;padding:0 16px 8px;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
 #feat::-webkit-scrollbar{display:none}
 .fcard{display:block;width:100px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
-.fcard img{display:block;width:100px;height:140px;object-fit:cover;border-radius:8px;background:var(--slot);box-shadow:0 3px 8px rgba(0,0,0,.25)}
+.fart{position:relative;display:block;border-radius:8px;overflow:hidden;background:var(--slot);box-shadow:0 3px 8px rgba(0,0,0,.25)}
+.fart img{display:block;width:100px;height:140px;object-fit:cover}
+.fart.shiny::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);background-size:300% 100%;animation:shine 4s ease-in-out infinite}
 .fname{display:block;margin-top:6px;font:700 16px/1.2 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fprice{display:block;font-weight:700;font-variant-numeric:tabular-nums}
-.row{border-top:1px solid var(--rule);scroll-margin:8px 0 72px}
+.fprice{display:inline-block;margin-top:3px;padding:0 8px;background:var(--gilt);color:#1d1a14;border-radius:3px;font-weight:700;font-variant-numeric:tabular-nums}
+.row{border-top:1px solid var(--rule);scroll-margin:76px 0 76px}
 .main{display:flex;align-items:center;gap:12px;min-height:64px;padding:8px 0;cursor:pointer}
 .thumb{flex:none;width:52px;height:52px;border-radius:6px;object-fit:cover;object-position:50% 22%;background:var(--slot)}
 .info{flex:1;min-width:0}
 .name{font:700 18px/1.2 var(--serif);overflow-wrap:anywhere}
+.badge{display:inline-block;padding:0 6px;border-radius:4px;font:700 16px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;vertical-align:1px}
+.staple{background:var(--gilt);color:#1d1a14}
+.chase{background:var(--sign);color:var(--on-sign);border:1px solid var(--gilt)}
+.wanted .name::before{content:"\2713\00a0";color:var(--save)}
+.sold .main{cursor:default}
+.sold .info,.sold .thumb{opacity:.5;filter:grayscale(1)}
+.stamp{display:inline-block;padding:2px 8px;border:3px solid #a01d1d;border-radius:4px;color:#a01d1d;font-weight:800;letter-spacing:.1em;transform:rotate(-8deg)}
 .meta{color:var(--soft)}
 .t8{color:var(--win);font-weight:600}
 .t8 b,.t8big b{font-weight:800}
@@ -73,25 +100,33 @@ h2{font:700 18px/1.2 var(--serif);margin:14px 0 8px}
 .ref{color:var(--soft)}
 .ev{font-size:20px;font-weight:700}
 .save{color:var(--save);font-weight:600}
-.more{padding:0 0 12px;text-align:center}
+.more{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease;text-align:center}
+.row.open>.more{grid-template-rows:1fr}
+.morein{min-height:0;overflow:hidden}
+.row.open .morein{padding-bottom:12px}
 .more p{margin:0 0 10px}
-.more .btn{margin-right:0}
-.stage{height:300px;display:flex;align-items:center;justify-content:center;perspective:700px;margin:4px 0 12px;animation:reveal .25s ease-out}
-.card{position:relative;line-height:0;border-radius:12px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.35);animation:tilt 5s ease-in-out infinite}
+.acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.acts .btn,#bar .btn{margin-right:0}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--sign);font:inherit;font-weight:700;cursor:pointer}
+.stage{height:330px;display:flex;align-items:center;justify-content:center;perspective:700px;margin:0 0 4px;animation:reveal .25s ease-out}
+.card{position:relative;line-height:0;border-radius:12px;overflow:hidden;box-shadow:0 6px 14px rgba(0,0,0,.35);animation:tilt 5s ease-in-out infinite;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.card.held{animation:none}
+.card.held::after{animation:none;background-position:var(--shine,50%) 0}
 .card img{display:block;max-height:300px;max-width:100%;width:auto;height:auto}
 .card::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.5) 50%,transparent 65%);background-size:300% 100%;animation:shine 5s ease-in-out infinite}
 .card.shiny::after{background-image:linear-gradient(115deg,transparent 20%,rgba(255,80,160,.35) 36%,rgba(255,235,120,.4) 44%,rgba(255,255,255,.6) 50%,rgba(110,230,255,.4) 56%,rgba(150,110,255,.35) 64%,transparent 80%)}
 @keyframes reveal{from{opacity:0;transform:scale(.94)}}
 @keyframes tilt{0%,100%{transform:rotateY(-10deg) rotateX(3deg)}50%{transform:rotateY(10deg) rotateX(-3deg)}}
 @keyframes shine{0%,100%{background-position:100% 0}50%{background-position:0 0}}
-@media (prefers-reduced-motion:reduce){.stage,.card,.card::after{animation:none}.card::after{display:none}}
+@media (prefers-reduced-motion:reduce){.stage,.card,.card::after,.fart.shiny::after,.dot.on{animation:none}.card:not(.held)::after,.fart.shiny::after{display:none}.more{transition:none}}
 .links a{display:inline-block;min-height:44px;line-height:44px;color:var(--link)}
 .btn{display:inline-block;min-height:48px;line-height:48px;padding:0 22px;margin-right:8px;background:var(--sign);color:var(--on-sign);font-weight:700;text-decoration:none;border-radius:6px;text-align:center;border:1px solid var(--gilt)}
 .btn.alt{background:#1c5a38}
 #empty{padding:12px 0}
 #empty p{margin:0 0 10px}
-#bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;padding:8px 16px calc(8px + env(safe-area-inset-bottom));background:var(--paper);border-top:1px solid var(--rule)}
-#bar .btn{flex:1;margin:0;min-height:44px;line-height:44px}
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:3;display:flex;gap:8px;padding:8px 16px calc(8px + env(safe-area-inset-bottom));background:var(--paper) var(--grain);border-top:1px solid var(--rule)}
+#bar .btn{flex:1;min-height:44px;line-height:44px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bar #clearwant{flex:none;line-height:40px}
 footer{padding-top:16px;padding-bottom:16px;border-top:1px solid var(--rule);margin-top:8px}
 footer p{margin:0 0 8px}
 .small{color:var(--soft)}
@@ -112,8 +147,9 @@ a:focus-visible,button:focus-visible,.fcard:focus-visible,.main:focus-visible,#f
 <h2>Featured</h2>
 <ul id="feat"></ul>
 </section>
-<input id="filter" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Filter the list" placeholder="Filter the list">
+<div id="tools"><input id="filter" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Filter the list" placeholder="Filter the list"></div>
 <div id="chips"></div>
+<p id="live"></p>
 <ul id="list"></ul>
 <div id="empty" hidden></div>
 </main>

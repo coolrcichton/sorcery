@@ -42,6 +42,10 @@ console.log("PASS  parseCsv handles quotes, commas and line breaks");
 const evil = toItem({ Status: "Available", Name: "<img src=x onerror=alert(1)>", "TCGplayer Link": "javascript:alert(1)", "Photo URL": "data:text/html,x" }, 0.1);
 assert.strictEqual(evil.link, ""); assert.strictEqual(evil.photo, "");
 console.log("PASS  non-https links and photos from the sheet are dropped");
+assert.strictEqual(toItem({ Status: "Sold", Name: "x", "Market Price": "50" }, 0.1).sold, true);
+assert.strictEqual(toItem({ Status: "Hidden", Name: "x", "Market Price": "50" }, 0.1), null);
+assert.strictEqual(toItem({ Status: "Available", Qty: "0", Name: "x" }, 0.1), null);
+console.log("PASS  Sold rows are kept and flagged; Hidden and Qty 0 rows are dropped");
 
 const stock = [];
 for (let i = 1; i <= 30; i++) stock.push({ id: "F" + i, event: 1000 - i, link: "https://www.tcgplayer.com/product/" + i + "/x" });
