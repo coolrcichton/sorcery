@@ -130,6 +130,13 @@ function ebayHref(it) {
   return "https://www.ebay.com/sch/i.html?_nkw=" + encodeURIComponent(q) + "&LH_Sold=1&LH_Complete=1";
 }
 
+// Card art: the seller's own photo if there is one, else TCGplayer's product image for that exact printing.
+function artUrl(it) {
+  if (it.photo) return it.photo;
+  const m = /\/product\/(\d+)/.exec(it.link || "");
+  return m ? "https://tcgplayer-cdn.tcgplayer.com/product/" + m[1] + "_400w.jpg" : "";
+}
+
 // ---- Page ----
 function esc(s) {
   return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -140,11 +147,6 @@ function esc(s) {
 function prettyPhone(n) {
   const d = String(n).replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
   return d.length === 10 ? d.slice(0, 3) + "-" + d.slice(3, 6) + "-" + d.slice(6) : n;
-}
-
-function prettyDate(s) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
-  return m ? ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m[2] - 1] + " " + Number(m[3]) : s;
 }
 
 function contactButtons(settings, sellerName, text, label) {
@@ -166,12 +168,14 @@ function rowHtml(it, settings, open) {
   let more = "";
   if (open) {
     more = '<div class="more">';
-    if (it.photo) more += '<img class="big" src="' + esc(it.photo) + '" alt="" width="288" height="216" loading="lazy">';
+    const art = artUrl(it);
+    if (art) more += '<div class="stage"><div class="card' + (/foil/i.test(it.finish) ? " foil" : "") + '"><img src="' + esc(art) +
+      '" alt="' + esc(it.name) + '" onerror="this.closest(\'.stage\').remove()"></div></div>';
     if (it.notes) more += "<p>" + esc(it.notes) + "</p>";
+    more += '<p class="acts">' + contactButtons(settings, it.seller, wantText(it), "I want this") + "</p>";
     more += '<p class="links">';
     if (it.link) more += '<a href="' + esc(it.link) + '" target="_blank" rel="noopener">Check on TCGplayer</a>';
-    more += '<a href="' + esc(ebayHref(it)) + '" target="_blank" rel="noopener">See eBay sold</a></p>';
-    more += '<p class="acts">' + contactButtons(settings, it.seller, wantText(it), "I want this") + "</p></div>";
+    more += '<a href="' + esc(ebayHref(it)) + '" target="_blank" rel="noopener">See eBay sold</a></p></div>';
   }
   return '<li class="row' + (open ? " open" : "") + '">' +
     '<div class="main" role="button" tabindex="0" aria-expanded="' + (open ? "true" : "false") + '" data-id="' + esc(it.id) + '">' +
@@ -223,6 +227,8 @@ function init() {
     if (!empty.hidden) { query = ""; filter.value = ""; chip = ""; renderChips(); }
     openId = openId === main.dataset.id ? "" : main.dataset.id;
     render();
+    const open = list.querySelector(".row.open");
+    if (open) open.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   filter.addEventListener("input", function () { query = filter.value; render(); });
@@ -240,7 +246,6 @@ function init() {
   // Header details from settings
   const s1 = sellerFor(settings, "");
   $("where").textContent = settings.location_now ? "Find us: " + settings.location_now : "";
-  $("checked").textContent = settings.prices_checked ? "Prices checked " + prettyDate(settings.prices_checked) + ". " : "";
   $("banner").textContent = settings.banner || "";
   $("bar").innerHTML = contactButtons(settings, "", GENERIC_TEXT, "Text us");
   $("pay").textContent = (settings.payment_methods ? "We take " + settings.payment_methods + ". " : "") +

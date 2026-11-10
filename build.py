@@ -40,7 +40,7 @@ def to_settings(pairs):
     while kv.get(f"seller{n}_name"):
         sellers.append({k: kv.get(f"seller{n}_{k}", "") for k in ("name", "sms", "whatsapp", "discord")})
         n += 1
-    out = {k: kv.get(k, "") for k in ("location_now", "banner", "payment_methods", "trades", "prices_checked")}
+    out = {k: kv.get(k, "") for k in ("location_now", "banner", "payment_methods", "trades")}
     out["discount"] = float(kv.get("discount") or 0.10)
     out["sellers"] = sellers
     return out
