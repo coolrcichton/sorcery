@@ -63,7 +63,7 @@ function toSettings(pairs) {
     sellers.push(s);
   }
   const out = { discount: Number(kv.discount) || 0.10, sellers: sellers };
-  ["location_now", "banner", "payment_methods", "trades"].forEach(function (k) { out[k] = kv[k] || ""; });
+  ["location_now", "banner", "payment_methods", "trades", "views_url"].forEach(function (k) { out[k] = kv[k] || ""; });
   return out;
 }
 
@@ -242,6 +242,7 @@ function moreHtml(it, settings, wanted) {
   if (it.notes) h += "<p>" + esc(it.notes) + "</p>";
   if (it.top8 && settings.top8) h += '<p class="t8big">' + top8Text(it) + '<span class="credit">Tracked by <a href="' + esc(settings.top8.source) +
     '" target="_blank" rel="noopener noreferrer">Sorcerers Summit</a></span></p>';
+  h += '<p class="viewed" data-viewed="' + esc(it.id) + '" hidden></p>';
   h += '<p class="acts">' + contactButtons(settings, wantText(it), "I want this") +
     '<button type="button" class="btn ghost" data-want="' + esc(it.id) + '">' + wantLabel(wanted) + "</button></p>";
   if (it.link) h += '<p class="links"><a href="' + esc(it.link) + '" target="_blank" rel="noopener noreferrer">Check on TCGplayer</a></p>';
@@ -266,7 +267,7 @@ function rowHtml(it, settings, open, wanted) {
     '<div class="main"' + attrs + ' data-id="' + esc(it.id) + '">' +
     (small ? '<img class="thumb" src="' + esc(small) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="thumb"></span>') +
     '<div class="info"><div class="name">' + esc(it.name) + (it.sold ? "" : badges(it)) + '</div><div class="meta">' + meta +
-    (it.hold ? ' <span class="hold">On hold</span>' : "") + "</div>" +
+    (it.hold ? ' <span class="hold">On hold</span>' : "") + '<span class="views" data-views="' + esc(it.id) + '"></span></div>' +
     (it.top8 ? '<div class="t8">' + top8Text(it) + "</div>" : "") + "</div>" +
     '<div class="price">' + price + "</div></div>" + (open && !it.sold ? moreHtml(it, settings, wanted) : "") + "</li>";
 }
@@ -331,6 +332,7 @@ function init() {
     }
     const n = avail().length;
     filter.placeholder = "Filter " + n + " items" + (items[0] ? ", e.g. " + items[0].name : "");
+    paintViews();
     $("live").innerHTML = '<span class="dot' + (liveOk ? " on" : "") + '"></span>' + n + " item" + (n === 1 ? "" : "s") + (liveOk ? ", updated live" : "");
   }
 
@@ -393,8 +395,51 @@ function init() {
   function openFromFeatured(id) {
     query = ""; filter.value = ""; chip = ""; openId = id;
     renderChips(); render();
+    countView(id);
     const open = list.querySelector(".row.open");
     if (open) open.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Real view counts. Opening a card records one view per device; counts live in the owner's own sheet.
+  // Nothing shows until a card has SHOW_VIEWS_AT views, and nothing breaks if the counter is not set up.
+  const SHOW_VIEWS_AT = 5;
+  let views = {}, viewsLoaded = "";
+  let seen = [];
+  try { seen = JSON.parse(localStorage.getItem("seen") || "[]"); if (location.hash === "#owner") localStorage.setItem("owner", "1"); } catch (e) {}
+  if (!Array.isArray(seen)) seen = [];
+  function isOwner() { try { return localStorage.getItem("owner") === "1"; } catch (e) { return false; } }
+  function viewsUrl() {
+    const u = settings.views_url || "";
+    return /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u) ? u : "";
+  }
+  function paintViews() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-views]"), function (el) {
+      const n = views[el.dataset.views] || 0;
+      el.textContent = n >= SHOW_VIEWS_AT ? " · " + n + " views" : "";
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-viewed]"), function (el) {
+      const n = views[el.dataset.viewed] || 0;
+      el.hidden = n < SHOW_VIEWS_AT;
+      el.textContent = "Viewed " + n + " times this weekend";
+    });
+  }
+  function callViews(id) {
+    const u = viewsUrl();
+    if (!u) return;
+    fetch(u + (id ? "?id=" + encodeURIComponent(id) : ""), { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        const next = {};
+        Object.keys(j || {}).forEach(function (k) { const n = Math.floor(Number(j[k])); if (n > 0) next[k] = n; });
+        views = next; paintViews();
+      }).catch(function () {});
+  }
+  function loadViews() { if (viewsUrl() && viewsLoaded !== viewsUrl()) { viewsLoaded = viewsUrl(); callViews(""); } }
+  function countView(id) {
+    if (isOwner() || seen.indexOf(id) >= 0) return;
+    seen.push(id);
+    try { localStorage.setItem("seen", JSON.stringify(seen)); } catch (e) {}
+    callViews(id);
   }
 
   function closeRow(li) {
@@ -411,6 +456,8 @@ function init() {
     void li.offsetHeight; // lay it out closed first, so the slide has somewhere to start
     li.classList.add("open");
     li.querySelector(".main").setAttribute("aria-expanded", "true");
+    paintViews();
+    countView(it.id);
   }
 
   function toggle(target) {
@@ -496,7 +543,7 @@ function init() {
     }));
   }
   function sigSettings(st) {
-    return JSON.stringify([st.discount, st.location_now, st.banner, st.payment_methods, st.trades, contact(st).sms, contact(st).whatsapp, contact(st).discord]);
+    return JSON.stringify([st.discount, st.location_now, st.banner, st.payment_methods, st.trades, contact(st).sms, contact(st).whatsapp, contact(st).discord, st.views_url]);
   }
   let shownItems = sigItems(data.items), shownSettings = sigSettings(settings);
   function refresh() {
@@ -518,7 +565,7 @@ function init() {
       if (nowItems === shownItems && nowSettings === shownSettings) return;
       const stockChanged = nowItems !== shownItems;
       shownItems = nowItems; shownSettings = nowSettings; settings = st; items = defaultSort(tag(fresh, st));
-      applySettings();
+      applySettings(); loadViews();
       if (stockChanged) renderFeatured(); // keep the strip still when only the location or banner changed
       renderChips(); render();
     }).catch(function () {});
@@ -528,6 +575,7 @@ function init() {
   renderFeatured();
   renderChips();
   render();
+  loadViews();
   refresh();
   requestAnimationFrame(drift);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
