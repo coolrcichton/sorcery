@@ -140,12 +140,27 @@ function defaultSort(items) {
   });
 }
 
+function shuffle(list) {
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+// Featured strip: always the 5 priciest items, plus 5 picked at random from the next 15, in a fresh order each load.
+function pickFeatured(items) {
+  const byPrice = items.filter(function (i) { return i.event != null && artUrl(i, 200); })
+    .sort(function (a, b) { return b.event - a.event; });
+  return shuffle(byPrice.slice(0, 5).concat(shuffle(byPrice.slice(5, 20)).slice(0, 5)));
+}
+
 function chipDefs(items) {
   const defs = [
     { key: "playmats", label: "Playmats", test: function (i) { return i.type === "Playmat"; } },
     { key: "foil", label: "Foil", test: function (i) { return /foil/i.test(i.finish); } },
     { key: "promo", label: "Promo", test: function (i) { return i.set === "Promo"; } },
-    { key: "under25", label: "Under $25", test: function (i) { return i.event != null && i.event < 25; } },
     { key: "100plus", label: "$100+", test: function (i) { return i.event != null && i.event >= 100; } }
   ];
   const sets = {};
@@ -231,6 +246,14 @@ function rowHtml(it, settings, open, thumb) {
     '<div class="price">' + price + "</div></div>" + more + "</li>";
 }
 
+function featuredHtml(picks) {
+  return picks.map(function (it) {
+    return '<li><button type="button" class="fcard" data-id="' + esc(it.id) + '">' +
+      '<img src="' + esc(artUrl(it, 200)) + '" alt="" width="100" height="140" loading="lazy">' +
+      '<span class="fname">' + esc(it.name) + '</span><span class="fprice">$' + it.event + "</span></button></li>";
+  }).join("");
+}
+
 function init() {
   const data = JSON.parse(document.getElementById("data").textContent);
   let settings = data.settings;
@@ -268,6 +291,20 @@ function init() {
     filter.placeholder = "Filter " + items.length + " items" + (items[0] ? ", e.g. " + items[0].name : "");
   }
 
+  function renderFeatured() {
+    const picks = pickFeatured(items);
+    $("featwrap").hidden = picks.length < 3;
+    $("feat").innerHTML = featuredHtml(picks);
+  }
+
+  // Tapping a featured card opens that card in the list below.
+  function openFromFeatured(id) {
+    query = ""; filter.value = ""; chip = ""; openId = id;
+    renderChips(); render();
+    const open = list.querySelector(".row.open");
+    if (open) open.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   function toggle(target) {
     const main = target.closest(".main");
     if (!main) return;
@@ -294,7 +331,11 @@ function init() {
     chip = chip === b.dataset.chip ? "" : b.dataset.chip;
     renderChips(); render();
   });
-  document.addEventListener("click", function (e) { if (!e.target.closest("a")) toggle(e.target); });
+  document.addEventListener("click", function (e) {
+    const f = e.target.closest(".fcard");
+    if (f) openFromFeatured(f.dataset.id);
+    else if (!e.target.closest("a")) toggle(e.target);
+  });
   document.addEventListener("keydown", function (e) {
     if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("main")) { e.preventDefault(); toggle(e.target); }
   });
@@ -331,11 +372,12 @@ function init() {
       const now = JSON.stringify([st, fresh]);
       if (now === shown) return;
       shown = now; settings = st; items = defaultSort(fresh);
-      applySettings(); renderChips(); render();
+      applySettings(); renderFeatured(); renderChips(); render();
     }).catch(function () {});
   }
 
   applySettings();
+  renderFeatured();
   renderChips();
   render();
   refresh();
@@ -343,4 +385,4 @@ function init() {
 }
 
 if (typeof document !== "undefined") init();
-if (typeof module !== "undefined") module.exports = { priceRow: priceRow, search: search, norm: norm, parseCsv: parseCsv, toItem: toItem, toSettings: toSettings, httpsUrl: httpsUrl };
+if (typeof module !== "undefined") module.exports = { priceRow: priceRow, search: search, norm: norm, parseCsv: parseCsv, toItem: toItem, toSettings: toSettings, httpsUrl: httpsUrl, pickFeatured: pickFeatured };
