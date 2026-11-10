@@ -11,5 +11,9 @@ for c in cases:
     ok = got == c["want"]
     failed += not ok
     print(("PASS  " if ok else "FAIL  ") + c["name"] + ("" if ok else f"\n      got  {got}\n      want {c['want']}"))
+from build import to_item
+evil = to_item({"Status": "Available", "Name": "x", "TCGplayer Link": "javascript:alert(1)", "Photo URL": "data:text/html,x"}, 0.1)
+assert evil["link"] == "" and evil["photo"] == ""
+print("PASS  non-https links and photos from the sheet are dropped")
 print(f"\n{len(cases) - failed} of {len(cases)} passed")
 sys.exit(1 if failed else 0)

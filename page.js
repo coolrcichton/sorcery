@@ -33,6 +33,9 @@ function priceRow(row, discount) {
 }
 
 // ---- Sheet rows to page data: ports of to_item and to_settings in build.py ----
+// Sheet cells that become links or image sources must be plain https URLs (blocks javascript: and the like).
+function httpsUrl(u) { return /^https:\/\/[^\s"'<>]+$/i.test(u) ? u : ""; }
+
 function toItem(row, discount) {
   const g = function (k) { return String(row[k] == null ? "" : row[k]).trim(); };
   const p = priceRow(row, discount);
@@ -41,8 +44,8 @@ function toItem(row, discount) {
     id: g("ID"), type: g("Type"), name: g("Name"), set: g("Set"), finish: g("Finish"),
     cond: g("Condition") || "NM", // owner's call: blank means Near Mint
     qty: g("Qty") ? Math.trunc(Number(g("Qty"))) : 1,
-    link: g("TCGplayer Link").split("?")[0],
-    photo: g("Photo URL"), notes: g("Notes"),
+    link: httpsUrl(g("TCGplayer Link").split("?")[0]),
+    photo: httpsUrl(g("Photo URL")), notes: g("Notes"),
     featured: g("Featured").toUpperCase() === "Y", hold: p.hold,
     ref: p.reference, src: p.source, event: p.event, saving: p.saving
   };
@@ -170,11 +173,6 @@ const GENERIC_TEXT = "Hi, I saw your Sorcery list. I'm looking for: ";
 function smsHref(number, text) { return "sms:" + number + "?&body=" + encodeURIComponent(text); }
 function waHref(number, text) { return "https://wa.me/" + String(number).replace(/\D/g, "") + "?text=" + encodeURIComponent(text); }
 
-function ebayHref(it) {
-  const q = "Sorcery Contested Realm " + it.name + (it.finish && it.finish !== "Standard" ? " " + it.finish : "");
-  return "https://www.ebay.com/sch/i.html?_nkw=" + encodeURIComponent(q) + "&LH_Sold=1&LH_Complete=1";
-}
-
 // Card art: the seller's own photo if there is one, else TCGplayer's product image for that exact printing.
 function artUrl(it, size) {
   if (it.photo) return it.photo;
@@ -196,8 +194,9 @@ function prettyPhone(n) {
 
 function contactButtons(settings, text, label) {
   const s = contact(settings);
+  const sms = /^\+?\d{7,15}$/.test(String(s.sms || "").replace(/[\s().-]/g, "")) ? String(s.sms).replace(/[\s().-]/g, "") : "";
   let h = "";
-  if (s.sms) h += '<a class="btn" href="' + esc(smsHref(s.sms, text)) + '">' + esc(label) + "</a>";
+  if (sms) h += '<a class="btn" href="' + esc(smsHref(sms, text)) + '">' + esc(label) + "</a>";
   if (s.whatsapp) h += '<a class="btn alt" href="' + esc(waHref(s.whatsapp, text)) + '">WhatsApp</a>';
   return h;
 }
@@ -218,12 +217,11 @@ function rowHtml(it, settings, open, thumb) {
     more = '<div class="more">';
     const art = artUrl(it, 400);
     if (art) more += '<div class="stage"><div class="card' + (shiny ? " shiny" : "") + '"><img src="' + esc(art) +
-      '" alt="' + esc(it.name) + '" onerror="this.closest(\'.stage\').remove()"></div></div>';
+      '" alt="' + esc(it.name) + '"></div></div>';
     if (it.notes) more += "<p>" + esc(it.notes) + "</p>";
     more += '<p class="acts">' + contactButtons(settings, wantText(it), "I want this") + "</p>";
-    more += '<p class="links">';
-    if (it.link) more += '<a href="' + esc(it.link) + '" target="_blank" rel="noopener">Check on TCGplayer</a>';
-    more += '<a href="' + esc(ebayHref(it)) + '" target="_blank" rel="noopener">See eBay sold</a></p></div>';
+    if (it.link) more += '<p class="links"><a href="' + esc(it.link) + '" target="_blank" rel="noopener noreferrer">Check on TCGplayer</a></p>';
+    more += "</div>";
   }
   return '<li class="row' + (open ? " open" : "") + '">' +
     '<div class="main" role="button" tabindex="0" aria-expanded="' + (open ? "true" : "false") + '" data-id="' + esc(it.id) + '">' +
@@ -281,6 +279,14 @@ function init() {
     if (open) open.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
+  // Art that fails to load: drop the big card, blank the thumbnail.
+  document.addEventListener("error", function (e) {
+    const t = e.target;
+    if (!t || t.tagName !== "IMG") return;
+    const stage = t.closest(".stage");
+    if (stage) stage.remove(); else t.removeAttribute("src");
+  }, true);
+
   filter.addEventListener("input", function () { query = filter.value; render(); });
   chipsEl.addEventListener("click", function (e) {
     const b = e.target.closest("button");
@@ -337,4 +343,4 @@ function init() {
 }
 
 if (typeof document !== "undefined") init();
-if (typeof module !== "undefined") module.exports = { priceRow: priceRow, search: search, norm: norm, parseCsv: parseCsv, toItem: toItem, toSettings: toSettings };
+if (typeof module !== "undefined") module.exports = { priceRow: priceRow, search: search, norm: norm, parseCsv: parseCsv, toItem: toItem, toSettings: toSettings, httpsUrl: httpsUrl };

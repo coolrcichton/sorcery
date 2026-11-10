@@ -3,7 +3,7 @@
 Usage: python3 build.py                              (reads the live published sheet)
        python3 build.py PUBLIC_CSV SETTINGS_CSV      (local CSV files instead)
 """
-import csv, io, json, os, sys, urllib.request
+import base64, csv, hashlib, io, json, os, re, sys, urllib.request
 
 from pricing import price_row
 
@@ -20,6 +20,11 @@ def read_csv(src):
     return list(csv.reader(io.StringIO(text)))
 
 
+def https_url(u):
+    """Sheet cells that become links or image sources must be plain https URLs."""
+    return u if re.fullmatch(r"https://[^\s\"'<>]+", u, re.I) else ""
+
+
 def to_item(row, discount):
     """One sheet row to the shape the page renders, or None if it must not show."""
     g = lambda k: (row.get(k) or "").strip()
@@ -30,8 +35,8 @@ def to_item(row, discount):
         "id": g("ID"), "type": g("Type"), "name": g("Name"), "set": g("Set"), "finish": g("Finish"),
         "cond": g("Condition") or "NM",  # owner's call: blank means Near Mint
         "qty": int(float(g("Qty"))) if g("Qty") else 1,
-        "link": g("TCGplayer Link").split("?")[0],
-        "photo": g("Photo URL"), "notes": g("Notes"),
+        "link": https_url(g("TCGplayer Link").split("?")[0]),
+        "photo": https_url(g("Photo URL")), "notes": g("Notes"),
         "featured": g("Featured").upper() == "Y", "hold": p["hold"],
         "ref": p["reference"], "src": p["source"], "event": p["event"], "saving": p["saving"],
     }
@@ -56,10 +61,14 @@ def main(public_src, settings_src):
     data = {"settings": settings, "items": [i for i in items if i], "live": LIVE}
 
     read = lambda name: open(os.path.join(HERE, name), encoding="utf-8").read()
+    js = read("page.js")
+    # Only this exact script may run; sheet data goes in last and with every "<" escaped.
+    js_hash = base64.b64encode(hashlib.sha256(js.encode("utf-8")).digest()).decode()
     html = (read("template.html")
             .replace("__PCT__", f"{settings['discount'] * 100:g}")
-            .replace("__DATA__", json.dumps(data, separators=(",", ":")).replace("</", "<\\/"))
-            .replace("__JS__", read("page.js")))
+            .replace("__JS_HASH__", js_hash)
+            .replace("__JS__", js)
+            .replace("__DATA__", json.dumps(data, separators=(",", ":")).replace("<", "\\u003c")))
     with open(os.path.join(HERE, "index.html"), "w", encoding="utf-8") as f:
         f.write(html)
     print(f"index.html: {len(data['items'])} items, {len(html.encode('utf-8')) / 1024:.1f} KB")
