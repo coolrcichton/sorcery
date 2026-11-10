@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-j9OL3JvOq2hsZ4sxVEXry+fAoYRtuSMyv5YSDvJh2eA='; style-src 'unsafe-inline'; img-src https: data:; connect-src https://docs.google.com https://*.googleusercontent.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-3zSDlNuMhrSUK2Z3MKTf31ZXvDIcVwvh1S0Ncu15TlM='; style-src 'unsafe-inline'; img-src https: data:; connect-src https://docs.google.com https://*.googleusercontent.com; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,12 +13,12 @@
 <style>
 :root{
   --paper:#f3ecd8;--ink:#1d1a14;--soft:#5a5240;--rule:#d6caa8;--slot:#e6dcc0;
-  --sign:#1f3a2e;--gilt:#e3c15a;--on-sign:#f3ecd8;--save:#1c5a38;--link:#234a8f;
+  --sign:#1f3a2e;--gilt:#e3c15a;--on-sign:#f3ecd8;--save:#1c5a38;--link:#234a8f;--win:#7a5600;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
 }
 @media (prefers-color-scheme:dark){:root{
   --paper:#15130e;--ink:#efe6cf;--soft:#b9ad90;--rule:#3a3424;--slot:#262117;
-  --save:#86cda0;--link:#9dbcf5;
+  --save:#86cda0;--link:#9dbcf5;--win:#e3c15a;
 }.foil{filter:brightness(1.8)}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -60,7 +60,12 @@ h2{font:700 18px/1.2 var(--serif);margin:14px 0 8px}
 .thumb{flex:none;width:52px;height:52px;border-radius:6px;object-fit:cover;object-position:50% 22%;background:var(--slot)}
 .info{flex:1;min-width:0}
 .name{font:700 18px/1.2 var(--serif);overflow-wrap:anywhere}
-.meta,.t8{color:var(--soft)}
+.meta{color:var(--soft)}
+.t8{color:var(--win);font-weight:600}
+.t8 b,.t8big b{font-weight:800}
+.t8big{display:inline-block;padding:8px 14px;border:2px solid var(--gilt);border-radius:8px;background:var(--slot);color:var(--win);font:700 20px/1.2 var(--serif)}
+.t8big b{font-size:26px}
+.credit{display:block;margin-top:4px;font:400 16px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--soft)}
 .more p a{color:var(--link)}
 .foil{background:linear-gradient(100deg,#b23a7a,#b8860b 35%,#1f7a8c 65%,#5b3fa8);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700}
 .hold{display:inline-block;padding:0 6px;background:var(--ink);color:var(--paper);border-radius:4px}
@@ -339,12 +344,15 @@ function contactButtons(settings, text, label) {
   return h;
 }
 
-// thumb: load a small art thumbnail for this row (only the priciest rows, to go easy on hall Wi-Fi).
-function rowHtml(it, settings, open, thumb) {
+function top8Text(it) {
+  return "\uD83C\uDFC6 In <b>" + it.top8 + "</b> Top 8 deck" + (it.top8 > 1 ? "s" : "") + "!";
+}
+
+function rowHtml(it, settings, open) {
   const shiny = /foil/i.test(it.finish);
   const meta = [esc(it.set), shiny ? '<span class="foil">' + esc(it.finish) + "</span>" : "", esc(it.cond), it.qty > 1 ? "×" + it.qty : ""]
     .filter(Boolean).join(" · ");
-  const small = thumb || it.photo ? artUrl(it, 200) : "";
+  const small = artUrl(it, 200);
   let price = "";
   if (it.ref != null) price += '<div class="ref">' + esc(it.src) + " $" + it.ref.toFixed(2) + "</div>";
   price += '<div class="ev">' + (it.event != null ? "$" + it.event : "Ask") + "</div>";
@@ -357,8 +365,8 @@ function rowHtml(it, settings, open, thumb) {
     if (art) more += '<div class="stage"><div class="card' + (shiny ? " shiny" : "") + '"><img src="' + esc(art) +
       '" alt="' + esc(it.name) + '"></div></div>';
     if (it.notes) more += "<p>" + esc(it.notes) + "</p>";
-    if (it.top8 && settings.top8) more += "<p>Played in " + it.top8 + " of " + settings.top8.decks + " Top 8 decks from " + settings.top8.events +
-      ' events tracked by <a href="' + esc(settings.top8.source) + '" target="_blank" rel="noopener noreferrer">Sorcerers Summit</a>, any printing.</p>';
+    if (it.top8 && settings.top8) more += '<p class="t8big">' + top8Text(it) + '<span class="credit">Tracked by <a href="' + esc(settings.top8.source) +
+      '" target="_blank" rel="noopener noreferrer">Sorcerers Summit</a></span></p>';
     more += '<p class="acts">' + contactButtons(settings, wantText(it), "I want this") + "</p>";
     if (it.link) more += '<p class="links"><a href="' + esc(it.link) + '" target="_blank" rel="noopener noreferrer">Check on TCGplayer</a></p>';
     more += "</div>";
@@ -368,7 +376,7 @@ function rowHtml(it, settings, open, thumb) {
     (small ? '<img class="thumb" src="' + esc(small) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="thumb"></span>') +
     '<div class="info"><div class="name">' + esc(it.name) + '</div><div class="meta">' + meta +
     (it.hold ? ' <span class="hold">On hold</span>' : "") + "</div>" +
-    (it.top8 ? '<div class="t8">In ' + it.top8 + " Top 8 deck" + (it.top8 > 1 ? "s" : "") + "</div>" : "") + "</div>" +
+    (it.top8 ? '<div class="t8">' + top8Text(it) + "</div>" : "") + "</div>" +
     '<div class="price">' + price + "</div></div>" + more + "</li>";
 }
 
@@ -410,9 +418,7 @@ function init() {
     const def = chipDefs(items).filter(function (d) { return d.key === chip; })[0];
     const pool = def ? items.filter(def.test) : items;
     const res = search(pool, query);
-    const top = {};
-    items.slice(0, 10).forEach(function (it) { top[it.id] = 1; });
-    list.innerHTML = res.hits.map(function (it) { return rowHtml(it, settings, it.id === openId, top[it.id]); }).join("");
+    list.innerHTML = res.hits.map(function (it) { return rowHtml(it, settings, it.id === openId); }).join("");
     if (res.hits.length) {
       empty.hidden = true;
     } else {
@@ -421,7 +427,7 @@ function init() {
       empty.innerHTML = "<p>Not on the list. We have more in the binder, text us what you need.</p>" +
         '<p class="acts">' + contactButtons(settings, GENERIC_TEXT + query, "Text us") + "</p>" +
         (closest.length ? "<p>Closest matches:</p><ul>" +
-          closest.map(function (it) { return rowHtml(it, settings, false, false); }).join("") + "</ul>" : "");
+          closest.map(function (it) { return rowHtml(it, settings, false); }).join("") + "</ul>" : "");
     }
     filter.placeholder = "Filter " + items.length + " items" + (items[0] ? ", e.g. " + items[0].name : "");
   }

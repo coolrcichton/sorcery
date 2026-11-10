@@ -216,12 +216,15 @@ function contactButtons(settings, text, label) {
   return h;
 }
 
-// thumb: load a small art thumbnail for this row (only the priciest rows, to go easy on hall Wi-Fi).
-function rowHtml(it, settings, open, thumb) {
+function top8Text(it) {
+  return "\uD83C\uDFC6 In <b>" + it.top8 + "</b> Top 8 deck" + (it.top8 > 1 ? "s" : "") + "!";
+}
+
+function rowHtml(it, settings, open) {
   const shiny = /foil/i.test(it.finish);
   const meta = [esc(it.set), shiny ? '<span class="foil">' + esc(it.finish) + "</span>" : "", esc(it.cond), it.qty > 1 ? "×" + it.qty : ""]
     .filter(Boolean).join(" · ");
-  const small = thumb || it.photo ? artUrl(it, 200) : "";
+  const small = artUrl(it, 200);
   let price = "";
   if (it.ref != null) price += '<div class="ref">' + esc(it.src) + " $" + it.ref.toFixed(2) + "</div>";
   price += '<div class="ev">' + (it.event != null ? "$" + it.event : "Ask") + "</div>";
@@ -234,8 +237,8 @@ function rowHtml(it, settings, open, thumb) {
     if (art) more += '<div class="stage"><div class="card' + (shiny ? " shiny" : "") + '"><img src="' + esc(art) +
       '" alt="' + esc(it.name) + '"></div></div>';
     if (it.notes) more += "<p>" + esc(it.notes) + "</p>";
-    if (it.top8 && settings.top8) more += "<p>Played in " + it.top8 + " of " + settings.top8.decks + " Top 8 decks from " + settings.top8.events +
-      ' events tracked by <a href="' + esc(settings.top8.source) + '" target="_blank" rel="noopener noreferrer">Sorcerers Summit</a>, any printing.</p>';
+    if (it.top8 && settings.top8) more += '<p class="t8big">' + top8Text(it) + '<span class="credit">Tracked by <a href="' + esc(settings.top8.source) +
+      '" target="_blank" rel="noopener noreferrer">Sorcerers Summit</a></span></p>';
     more += '<p class="acts">' + contactButtons(settings, wantText(it), "I want this") + "</p>";
     if (it.link) more += '<p class="links"><a href="' + esc(it.link) + '" target="_blank" rel="noopener noreferrer">Check on TCGplayer</a></p>';
     more += "</div>";
@@ -245,7 +248,7 @@ function rowHtml(it, settings, open, thumb) {
     (small ? '<img class="thumb" src="' + esc(small) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="thumb"></span>') +
     '<div class="info"><div class="name">' + esc(it.name) + '</div><div class="meta">' + meta +
     (it.hold ? ' <span class="hold">On hold</span>' : "") + "</div>" +
-    (it.top8 ? '<div class="t8">In ' + it.top8 + " Top 8 deck" + (it.top8 > 1 ? "s" : "") + "</div>" : "") + "</div>" +
+    (it.top8 ? '<div class="t8">' + top8Text(it) + "</div>" : "") + "</div>" +
     '<div class="price">' + price + "</div></div>" + more + "</li>";
 }
 
@@ -287,9 +290,7 @@ function init() {
     const def = chipDefs(items).filter(function (d) { return d.key === chip; })[0];
     const pool = def ? items.filter(def.test) : items;
     const res = search(pool, query);
-    const top = {};
-    items.slice(0, 10).forEach(function (it) { top[it.id] = 1; });
-    list.innerHTML = res.hits.map(function (it) { return rowHtml(it, settings, it.id === openId, top[it.id]); }).join("");
+    list.innerHTML = res.hits.map(function (it) { return rowHtml(it, settings, it.id === openId); }).join("");
     if (res.hits.length) {
       empty.hidden = true;
     } else {
@@ -298,7 +299,7 @@ function init() {
       empty.innerHTML = "<p>Not on the list. We have more in the binder, text us what you need.</p>" +
         '<p class="acts">' + contactButtons(settings, GENERIC_TEXT + query, "Text us") + "</p>" +
         (closest.length ? "<p>Closest matches:</p><ul>" +
-          closest.map(function (it) { return rowHtml(it, settings, false, false); }).join("") + "</ul>" : "");
+          closest.map(function (it) { return rowHtml(it, settings, false); }).join("") + "</ul>" : "");
     }
     filter.placeholder = "Filter " + items.length + " items" + (items[0] ? ", e.g. " + items[0].name : "");
   }

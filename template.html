@@ -13,12 +13,12 @@
 <style>
 :root{
   --paper:#f3ecd8;--ink:#1d1a14;--soft:#5a5240;--rule:#d6caa8;--slot:#e6dcc0;
-  --sign:#1f3a2e;--gilt:#e3c15a;--on-sign:#f3ecd8;--save:#1c5a38;--link:#234a8f;
+  --sign:#1f3a2e;--gilt:#e3c15a;--on-sign:#f3ecd8;--save:#1c5a38;--link:#234a8f;--win:#7a5600;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
 }
 @media (prefers-color-scheme:dark){:root{
   --paper:#15130e;--ink:#efe6cf;--soft:#b9ad90;--rule:#3a3424;--slot:#262117;
-  --save:#86cda0;--link:#9dbcf5;
+  --save:#86cda0;--link:#9dbcf5;--win:#e3c15a;
 }.foil{filter:brightness(1.8)}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -60,7 +60,12 @@ h2{font:700 18px/1.2 var(--serif);margin:14px 0 8px}
 .thumb{flex:none;width:52px;height:52px;border-radius:6px;object-fit:cover;object-position:50% 22%;background:var(--slot)}
 .info{flex:1;min-width:0}
 .name{font:700 18px/1.2 var(--serif);overflow-wrap:anywhere}
-.meta,.t8{color:var(--soft)}
+.meta{color:var(--soft)}
+.t8{color:var(--win);font-weight:600}
+.t8 b,.t8big b{font-weight:800}
+.t8big{display:inline-block;padding:8px 14px;border:2px solid var(--gilt);border-radius:8px;background:var(--slot);color:var(--win);font:700 20px/1.2 var(--serif)}
+.t8big b{font-size:26px}
+.credit{display:block;margin-top:4px;font:400 16px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--soft)}
 .more p a{color:var(--link)}
 .foil{background:linear-gradient(100deg,#b23a7a,#b8860b 35%,#1f7a8c 65%,#5b3fa8);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700}
 .hold{display:inline-block;padding:0 6px;background:var(--ink);color:var(--paper);border-radius:4px}
