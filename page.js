@@ -50,6 +50,7 @@ function toItem(row, discount) {
     link: tcgUrl(g("TCGplayer Link").split("?")[0]),
     photo: httpsUrl(g("Photo URL")), notes: g("Notes"),
     featured: g("Featured").toUpperCase() === "Y", hold: p.hold,
+    curio: g("Curio").toUpperCase() === "Y", grade: g("Grade"), // anything in Grade means the card is slabbed
     ref: p.reference, src: p.source, event: p.event, saving: p.saving
   };
 }
@@ -105,7 +106,7 @@ function lev(a, b) {
 }
 
 function hay(it) {
-  return it._h || (it._h = norm([it.name, it.set, it.finish, it.type, it.notes].join(" ")));
+  return it._h || (it._h = norm([it.name, it.set, it.finish, it.type, it.notes, it.curio ? "curio" : "", it.grade ? "slabbed " + it.grade : ""].join(" ")));
 }
 
 // Substring match first, then a typo allowance per word: 1 edit for 5 letters, 2 for longer.
@@ -166,6 +167,8 @@ function chipDefs(items) {
   const defs = [
     { key: "staples", label: "Staples", test: function (i) { return i.top8 >= STAPLE; } },
     { key: "playmats", label: "Playmats", test: function (i) { return i.type === "Playmat"; } },
+    { key: "curio", label: "Curio", test: function (i) { return i.curio; } },
+    { key: "slabbed", label: "Slabbed", test: function (i) { return !!i.grade; } },
     { key: "foil", label: "Foil", test: function (i) { return /foil/i.test(i.finish); } },
     { key: "promo", label: "Promo", test: function (i) { return i.set === "Promo"; } },
     { key: "100plus", label: "$100+", test: function (i) { return i.event != null && i.event >= 100; } }
@@ -229,7 +232,9 @@ function top8Text(it) {
 
 function badges(it) {
   return (it.top8 >= STAPLE ? ' <span class="badge staple">Staple</span>' : "") +
-    (it.event != null && it.event >= CHASE ? ' <span class="badge chase">Chase</span>' : "");
+    (it.type !== "Playmat" && it.event != null && it.event >= CHASE ? ' <span class="badge chase">Chase</span>' : "") +
+    (it.curio ? ' <span class="badge curio">Curio</span>' : "") +
+    (it.grade ? ' <span class="badge slab">Slabbed ' + esc(it.grade) + "</span>" : "");
 }
 
 function wantLabel(wanted) { return wanted ? "✓ On my list" : "+ Add to my list"; }
@@ -258,7 +263,7 @@ function rowHtml(it, settings, open, wanted) {
   let price = "";
   if (it.sold) price = '<span class="stamp">SOLD</span>';
   else {
-    if (it.ref != null) price += '<div class="ref">' + esc(it.src) + " $" + it.ref.toFixed(2) + "</div>";
+    if (it.ref != null) price += '<div class="ref">' + (it.type === "Playmat" ? "" : esc(it.src) + " ") + "$" + it.ref.toFixed(2) + "</div>";
     price += '<div class="ev">' + (it.event != null ? "$" + it.event : "Ask") + "</div>";
     if (it.saving != null) price += '<div class="save">Save $' + it.saving + "</div>";
   }
@@ -404,7 +409,15 @@ function init() {
     renderChips(); render();
     countView(id);
     const open = list.querySelector(".row.open");
-    if (open) open.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (open) showRow(open, true);
+  }
+
+  // The list scrolls inside its own box: move the box's scroll to the row, then bring the box itself on screen.
+  function showRow(li, toTop) {
+    const top = li.offsetTop, bottom = top + li.offsetHeight;
+    if (toTop || top < list.scrollTop || li.offsetHeight > list.clientHeight) list.scrollTo({ top: top, behavior: "smooth" });
+    else if (bottom > list.scrollTop + list.clientHeight) list.scrollTo({ top: bottom - list.clientHeight, behavior: "smooth" });
+    list.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   // Real view counts. Opening a card records one view per device; counts live in the owner's own sheet.
@@ -479,7 +492,7 @@ function init() {
     openId = id;
     const li = main.parentNode;
     openRow(li, byId(id));
-    setTimeout(function () { li.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, 330);
+    setTimeout(function () { showRow(li, false); }, 330);
   }
 
   // Drag across an opened card and it tilts under the finger, shine following.
@@ -547,7 +560,7 @@ function init() {
   // Compare what matters, in a fixed order, so the baked snapshot and a live read of the same sheet look identical.
   function sigItems(list) {
     return JSON.stringify(list.map(function (i) {
-      return [i.id, i.type, i.name, i.set, i.finish, i.cond, i.qty, i.link, i.photo, i.notes, i.featured, i.hold, i.sold, i.ref, i.src, i.event, i.saving];
+      return [i.id, i.type, i.name, i.set, i.finish, i.cond, i.qty, i.link, i.photo, i.notes, i.featured, i.hold, i.curio, i.grade, i.sold, i.ref, i.src, i.event, i.saving];
     }));
   }
   function sigSettings(st) {

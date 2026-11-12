@@ -75,7 +75,9 @@ h2{font:700 18px/1.2 var(--serif);margin:14px 0 8px}
 .fart.shiny::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);background-size:300% 100%;animation:shine 4s ease-in-out infinite}
 .fname{display:block;margin-top:6px;font:700 16px/1.2 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fprice{display:inline-block;margin-top:3px;padding:0 8px;background:var(--gilt);color:#1d1a14;border-radius:3px;font-weight:700;font-variant-numeric:tabular-nums}
-.row{border-top:1px solid var(--rule);scroll-margin:76px 0 76px}
+/* The list scrolls in its own box, sized to fill the screen between the sticky filter (66px) and the bottom bar (72px) */
+#list{position:relative;overflow-y:auto;max-height:calc(100vh - 138px);max-height:calc(100dvh - 138px - env(safe-area-inset-bottom));scroll-margin:66px 0 72px}
+.row{border-top:1px solid var(--rule)}
 .main{display:flex;align-items:center;gap:12px;min-height:64px;padding:8px 0;cursor:pointer}
 .thumb{flex:none;width:52px;height:52px;border-radius:6px;object-fit:cover;object-position:50% 22%;background:var(--slot)}
 .info{flex:1;min-width:0}
@@ -83,6 +85,8 @@ h2{font:700 18px/1.2 var(--serif);margin:14px 0 8px}
 .badge{display:inline-block;padding:0 6px;border-radius:4px;font:700 16px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;vertical-align:1px}
 .staple{background:var(--gilt);color:#1d1a14}
 .chase{background:var(--sign);color:var(--on-sign);border:1px solid var(--gilt)}
+.curio{border:1px solid var(--soft)}
+.slab{background:var(--ink);color:var(--paper)}
 .wanted .name::before{content:"\2713\00a0";color:var(--save)}
 .sold .main{cursor:default}
 .sold .info,.sold .thumb{opacity:.5;filter:grayscale(1)}
@@ -157,7 +161,6 @@ a:focus-visible,button:focus-visible,.fcard:focus-visible,.main:focus-visible,#f
 <p>Online prices exclude shipping and sales tax.</p>
 <p id="pay"></p>
 <p>Buying 3 or more? Ask for a bundle price.</p>
-<p>Other TCGs available, ask.</p>
 <p id="plain"></p>
 <p class="small">Not affiliated with Erik's Curiosa.</p>
 </footer>

@@ -49,6 +49,13 @@ assert.strictEqual(toItem({ Status: "Hidden", Name: "x", "Market Price": "50" },
 assert.strictEqual(toItem({ Status: "Available", Qty: "0", Name: "x" }, 0.1), null);
 console.log("PASS  Sold rows are kept and flagged; Hidden and Qty 0 rows are dropped");
 
+const tagged = toItem({ Status: "Available", Name: "x", Curio: "y", Grade: " PSA 9 " }, 0.1);
+assert.strictEqual(tagged.curio, true); assert.strictEqual(tagged.grade, "PSA 9");
+const plain = toItem({ Status: "Available", Name: "x" }, 0.1);
+assert.strictEqual(plain.curio, false); assert.strictEqual(plain.grade, "");
+assert.deepStrictEqual(search([tagged, plain], "slabbed").hits, [tagged]);
+console.log("PASS  Curio and Grade columns are read; blank means neither");
+
 const stock = [];
 for (let i = 1; i <= 30; i++) stock.push({ id: "F" + i, event: 1000 - i, link: "https://www.tcgplayer.com/product/" + i + "/x" });
 const orders = {};

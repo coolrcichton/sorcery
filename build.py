@@ -46,6 +46,7 @@ def to_item(row, discount):
         "link": tcg_url(g("TCGplayer Link").split("?")[0]),
         "photo": https_url(g("Photo URL")), "notes": g("Notes"),
         "featured": g("Featured").upper() == "Y", "hold": p["hold"],
+        "curio": g("Curio").upper() == "Y", "grade": g("Grade"),  # anything in Grade means the card is slabbed
         "ref": p["reference"], "src": p["source"], "event": p["event"], "saving": p["saving"],
     }
 
