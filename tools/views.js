@@ -1,0 +1,30 @@
+const { chromium } = require("/opt/npm-tools/node_modules/playwright");
+const fs = require("fs");
+(async () => {
+  const [url, pub, set] = process.argv.slice(2);
+  const pubCsv = fs.readFileSync(pub, "utf8");
+  const setCsv = fs.readFileSync(set, "utf8") + "views_url,https://script.google.com/macros/s/AKfycbTEST_123-abc/exec\r\n";
+  const b = await chromium.launch({ executablePath: "/usr/bin/google-chrome" });
+  const run = async (name, opts) => {
+    const counts = { A033: 11, A035: 4, A034: "<img src=x onerror=window.pwned=1>", junk: -3 };
+    const hits = []; const bad = [];
+    const p = await (await b.newContext({ viewport: { width: 375, height: 667 }, isMobile: true })).newPage();
+    p.on("pageerror", e => bad.push(String(e))); p.on("console", m => /Content Security|Refused/.test(m.text()) && bad.push(m.text().slice(0, 100)));
+    await p.route("**/docs.google.com/**", r => r.fulfill({ body: r.request().url().includes("2131651168") ? pubCsv : (opts.noUrl ? fs.readFileSync(set, "utf8") : setCsv), headers: { "access-control-allow-origin": "*" } }));
+    await p.route("**/script.google.com/**", r => { const id = new URL(r.request().url()).searchParams.get("id"); hits.push(id || "(read)"); if (id && typeof counts[id] !== "string") counts[id] = (counts[id] || 0) + 1; r.fulfill({ body: opts.junk ? "<html>error</html>" : JSON.stringify(counts), contentType: "application/json", headers: { "access-control-allow-origin": "*" } }); });
+    await p.route("**/tcgplayer-cdn.tcgplayer.com/**", r => r.abort());
+    await p.goto(url + (opts.owner ? "#owner" : "")); await p.waitForTimeout(900);
+    const row = id => p.$eval('.main[data-id="' + id + '"] .views', e => e.textContent).catch(() => "?");
+    const before = { A033: await row("A033"), A035: await row("A035"), A034: await row("A034") };
+    await p.click('.main[data-id="A035"]'); await p.waitForTimeout(500);
+    const panel = await p.$eval('[data-viewed="A035"]', e => e.hidden ? "(hidden)" : e.textContent);
+    await p.click('.main[data-id="A035"]'); await p.waitForTimeout(400); await p.click('.main[data-id="A035"]'); await p.waitForTimeout(400);
+    console.log(name.padEnd(22), JSON.stringify({ before, A035afterOpen: await row("A035"), panel, requests: hits, pwned: await p.evaluate(() => window.pwned || "no"), bad }));
+    await p.close();
+  };
+  await run("counter set up", {});
+  await run("no counter configured", { noUrl: true });
+  await run("owner's phone", { owner: true });
+  await run("counter returns junk", { junk: true });
+  await b.close();
+})();
